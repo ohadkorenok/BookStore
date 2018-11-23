@@ -6,6 +6,7 @@ public class FutureTest {
 
     @Test
     public void get() {
+        Future a1 = new Future();
     }
 
     @Test
