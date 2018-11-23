@@ -1,5 +1,3 @@
-package bgu.spl.mics.application.passiveObjects;
-
 import org.junit.Test;
 
 import static org.junit.Assert.*;
