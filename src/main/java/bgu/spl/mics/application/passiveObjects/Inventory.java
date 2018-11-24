@@ -1,5 +1,5 @@
 package bgu.spl.mics.application.passiveObjects;
-
+import java.util.concurrent.*;
 
 
 /**
@@ -13,7 +13,7 @@ package bgu.spl.mics.application.passiveObjects;
  * You can add ONLY private fields and methods to this class as you see fit.
  */
 public class Inventory {
-
+	private ConcurrentHashMap inv;
 	/**
      * Retrieves the single instance of this class.
      */
