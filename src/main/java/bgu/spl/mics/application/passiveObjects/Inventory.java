@@ -1,6 +1,7 @@
 package bgu.spl.mics.application.passiveObjects;
 
 
+import java.io.Serializable;
 
 /**
  * Passive data-object representing the store inventory.
@@ -12,7 +13,7 @@ package bgu.spl.mics.application.passiveObjects;
  * <p>
  * You can add ONLY private fields and methods to this class as you see fit.
  */
-public class Inventory {
+public class Inventory implements Serializable {
 
 	/**
      * Retrieves the single instance of this class.
