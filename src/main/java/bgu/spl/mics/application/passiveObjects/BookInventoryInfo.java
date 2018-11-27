@@ -10,7 +10,7 @@ public class BookInventoryInfo {
 
 	private String bookTitle;
 	private int price;
-	private int amountInInventory;
+	private volatile int amountInInventory;
 	public BookInventoryInfo(String bookTitle, int price,int amount){
 
 		this.bookTitle = bookTitle;
@@ -34,8 +34,7 @@ public class BookInventoryInfo {
      * @return amount of available books.      
      */
 	public int getAmountInInventory() {
-		// TODO Implement this
-		return 0;
+		return amountInInventory;
 	}
 
 	/**

@@ -13,12 +13,16 @@ import static org.junit.Assert.*;
 public class InventoryTest {
     private Inventory invent;
     private BookInventoryInfo[] arrToLoad;
+
     @Before
     public void setUp() throws Exception {
-        invent=new Inventory();
-        arrToLoad = new BookInventoryInfo[10];
-        for(int i=0;i<10;i++){
-            arrToLoad[i]=new BookInventoryInfo("harry potter "+i, 20+i,1);
+        invent=Inventory.getInstance();
+        arrToLoad = new BookInventoryInfo[20];
+        for(int i=0;i<20;i++){
+            if(i<10)
+                arrToLoad[i]=new BookInventoryInfo("harry potter "+i, 20+i,1);
+            else
+                arrToLoad[i]=new BookInventoryInfo("harry potter "+(20-i), 20+i,1);
         }
         invent.load(arrToLoad);
     }
@@ -46,6 +50,10 @@ public class InventoryTest {
         for(int i=0;i<10;i++){
             assertEquals(invent.checkAvailabiltyAndGetPrice("harry potter "+10),-1);
             assertEquals(invent.checkAvailabiltyAndGetPrice("harry potter "+i),arrToLoad[i].getPrice());
+            while(invent.checkAvailabiltyAndGetPrice("harry potter "+i)!=-1){
+                invent.take("harry potter "+i);
+            }
+            assertEquals(0,arrToLoad[i].getAmountInInventory());
         }
     }
 
