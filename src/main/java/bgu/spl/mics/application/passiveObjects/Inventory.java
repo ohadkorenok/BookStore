@@ -37,6 +37,7 @@ public class Inventory implements java.io.Serializable{
 	//@PRE: inventory !=null
 	//@POST: inv initialized
 	public void load (BookInventoryInfo[ ] inventory ) {
+		
 	}
 	
 	/**

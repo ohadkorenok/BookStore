@@ -10,6 +10,7 @@ package bgu.spl.mics;
  * You cannot add methods to this interface.
  */
 public interface MessageBus {
+    //@INV:
 
     /**
      * Subscribes {@code m} to receive {@link Event}s of type {@code type}.
@@ -18,6 +19,8 @@ public interface MessageBus {
      * @param type The type to subscribe to,
      * @param m    The subscribing micro-service.
      */
+    //@PRE: messageBus.register(m)
+    //@POST: messageBus.awaitMessage(m) &&  messageBus.sendEvent(type event) != null
     <T> void subscribeEvent(Class<? extends Event<T>> type, MicroService m);
 
     /**
