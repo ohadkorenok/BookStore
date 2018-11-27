@@ -20,6 +20,7 @@ package bgu.spl.mics;
  */
 public abstract class MicroService implements Runnable {
 
+    private MessageBusImpl magicBus = MessageBusImpl.getInstance();
     private boolean terminated = false;
     private final String name;
 
@@ -53,7 +54,7 @@ public abstract class MicroService implements Runnable {
      *                 queue.
      */
     protected final <T, E extends Event<T>> void subscribeEvent(Class<E> type, Callback<E> callback) {
-        //TODO: implement this.
+
     }
 
     /**
@@ -148,6 +149,8 @@ public abstract class MicroService implements Runnable {
      */
     @Override
     public final void run() {
+        // The microservice registers to the message bus.
+        magicBus.register(this);
         initialize();
         while (!terminated) {
             System.out.println("NOT IMPLEMENTED!!!"); //TODO: you should delete this line :)

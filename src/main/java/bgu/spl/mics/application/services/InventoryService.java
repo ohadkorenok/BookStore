@@ -21,8 +21,9 @@ public class InventoryService extends MicroService{
 
 	@Override
 	protected void initialize() {
-		// TODO Implement this
-		
+//		this.subscribeEvent(Event event.getclass(), callback());
+//		this.subscribeBroadcast();
+
 	}
 
 }
