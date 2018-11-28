@@ -1,5 +1,11 @@
 package bgu.spl.mics;
 
+import sun.security.provider.NativePRNG;
+
+import java.util.LinkedList;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.LinkedBlockingQueue;
+
 /**
  * The {@link MessageBusImpl class is the implementation of the MessageBus interface.
  * Write your implementation here!
@@ -8,6 +14,8 @@ package bgu.spl.mics;
 public class MessageBusImpl implements MessageBus {
 
     private static MessageBusImpl messageBus;
+    private ConcurrentHashMap<MicroService, LinkedList<LinkedBlockingQueue<Message>>> qMap;
+
 
     public static MessageBusImpl getInstance() {
         if (messageBus == null) {

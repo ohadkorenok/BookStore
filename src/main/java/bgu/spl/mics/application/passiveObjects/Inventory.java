@@ -1,7 +1,7 @@
 package bgu.spl.mics.application.passiveObjects;
+import java.util.concurrent.*;
+import java.io.*;
 
-
-import java.io.Serializable;
 
 /**
  * Passive data-object representing the store inventory.
@@ -13,14 +13,18 @@ import java.io.Serializable;
  * <p>
  * You can add ONLY private fields and methods to this class as you see fit.
  */
-public class Inventory implements Serializable {
+public class Inventory implements java.io.Serializable{
+	private ConcurrentHashMap<String,BookInventoryInfo> inv;
+	private static Inventory inventory;
 
 	/**
      * Retrieves the single instance of this class.
      */
 	public static Inventory getInstance() {
-		//TODO: Implement this
-		return null;
+		if(inventory == null){
+			inventory = new Inventory();
+		}
+		return inventory;
 	}
 	
 	/**
@@ -30,6 +34,8 @@ public class Inventory implements Serializable {
      * @param inventory 	Data structure containing all data necessary for initialization
      * 						of the inventory.
      */
+	//@PRE: inventory !=null
+	//@POST: inv initialized
 	public void load (BookInventoryInfo[ ] inventory ) {
 		
 	}
@@ -42,8 +48,9 @@ public class Inventory implements Serializable {
      * 			The first should not change the state of the inventory while the 
      * 			second should reduce by one the number of books of the desired type.
      */
+	//@PRE: book != null
+	//@POST: inv.get(book).getAmountInInventory()=inv.get(book).getAmountInInventory()-1
 	public OrderResult take (String book) {
-		
 		return null;
 	}
 	
@@ -55,6 +62,8 @@ public class Inventory implements Serializable {
      * @param book 		Name of the book.
      * @return the price of the book if it is available, -1 otherwise.
      */
+	//@PRE: book != null && inv.get(book).getPrice()>=0
+	//@POST: if(inv.get(book).getAmountInInventory()>0)return value==inv.get(book).getPrice()
 	public int checkAvailabiltyAndGetPrice(String book) {
 		//TODO: Implement this
 		return -1;
@@ -68,6 +77,8 @@ public class Inventory implements Serializable {
      * their respective available amount in the inventory. 
      * This method is called by the main method in order to generate the output.
      */
+	//@PRE: inv != null
+	//@POST: data in file == inv.toString() + inv.elements(i).toString()
 	public void printInventoryToFile(String filename){
 		//TODO: Implement this
 	}
