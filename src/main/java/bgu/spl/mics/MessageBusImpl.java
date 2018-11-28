@@ -14,7 +14,8 @@ import java.util.concurrent.LinkedBlockingQueue;
 public class MessageBusImpl implements MessageBus {
 
     private static MessageBusImpl messageBus;
-    private ConcurrentHashMap<MicroService, LinkedList<LinkedBlockingQueue<Message>>> qMap;
+    private ConcurrentHashMap<Class <? extends MicroService>, LinkedList<LinkedBlockingQueue<Message>>> msQ;
+    private ConcurrentHashMap<Class <? extends  Event> , Class <? extends MicroService>> evMs;
 
 
     public static MessageBusImpl getInstance() {
@@ -56,7 +57,6 @@ public class MessageBusImpl implements MessageBus {
 
     @Override
     public void register(MicroService m) {
-        // TODO Auto-generated method stub
 
     }
 
