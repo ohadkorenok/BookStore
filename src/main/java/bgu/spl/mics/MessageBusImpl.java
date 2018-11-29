@@ -1,5 +1,6 @@
 package bgu.spl.mics;
 
+import bgu.spl.mics.application.passiveObjects.ConcurrentHashMapSemaphore;
 import sun.security.provider.NativePRNG;
 
 import java.util.ConcurrentModificationException;
@@ -66,6 +67,9 @@ public class MessageBusImpl implements MessageBus {
 
     @Override
     public void register(MicroService m) {
+		ConcurrentHashMapSemaphore<String,Integer> map=new ConcurrentHashMapSemaphore();
+		ConcurrentHashMap<String,Integer> map2=new ConcurrentHashMap();
+
         synchronized (msQ) {
             if (!msQ.containsKey(m.getClass())) {
                 LinkedList<LinkedBlockingQueue<Message>> listToPush = new LinkedList<>();
