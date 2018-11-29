@@ -1,11 +1,6 @@
 package bgu.spl.mics;
 
-import sun.security.provider.NativePRNG;
-
-import java.util.ConcurrentModificationException;
 import java.util.LinkedList;
-import java.util.Map;
-import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.LinkedBlockingQueue;
 
@@ -17,13 +12,9 @@ import java.util.concurrent.LinkedBlockingQueue;
 public class MessageBusImpl implements MessageBus {
 
     private static MessageBusImpl messageBus;
-    private ConcurrentHashMap<Class<? extends MicroService>, MicroService> classToWorker;
     private ConcurrentHashMap<Event, Future> eventToFuture;
-    private ConcurrentHashMap<MicroService, LinkedList<LinkedBlockingQueue<Message>>> microServiceToLinkedList;
-    private ConcurrentHashMap<Class<? extends Event>, Class<? extends MicroService>> eventToMs;
-//    private Map<Event, Future> eventFutureMap;
-//    private final Event<StubEvent> stubEvent;
-
+    private ConcurrentHashMap<Class<? extends Event>, RoundRobinLinkedList<SpecificBlockingQueue<Message>>> microServiceClassToRoundRobinQueues;
+    private ConcurrentHashMap<Class<? extends MicroService>, LinkedList<Class<? extends Event>>> serviceClasstoEventClass;
 
     public static MessageBusImpl getInstance() {
         if (messageBus == null) {
@@ -68,12 +59,14 @@ public class MessageBusImpl implements MessageBus {
     public void register(MicroService m) {
         synchronized (msQ) {
             if (!msQ.containsKey(m.getClass())) {
-                LinkedList<LinkedBlockingQueue<Message>> listToPush = new LinkedList<>();
-                listToPush.add(new LinkedBlockingQueue<>()); // Extend to work with name
+                LinkedList<SpecificBlockingQueue<Message>> listToPush = new LinkedList<>();
+                listToPush.add(new SpecificBlockingQueue<>()); // Extend to work with name
+                q = new SpecificBlockingQueue<>(); // Extend to work with name
+                q.setMicroService(m.getClass());
                 msQ.put(m.getClass(), listToPush);
             } else {
-                LinkedList<LinkedBlockingQueue<Message>> listToUpdate = msQ.get(m.getClass());
-                listToUpdate.add(new LinkedBlockingQueue<>()); // Extend to work with name
+                LinkedList<SpecificBlockingQueue<Message>> listToUpdate = msQ.get(m.getClass());
+                listToUpdate.add(new SpecificBlockingQueue<>()); // Extend to work with name
                 msQ.replace(m.getClass(), listToUpdate);
             }
         }
@@ -97,7 +90,7 @@ public class MessageBusImpl implements MessageBus {
         return null;
     }
 
-    private LinkedBlockingQueue pullCurrentQueue(LinkedList<LinkedBlockingQueue<Message>>){
+    private LinkedBlockingQueue pullCurrentQueue(LinkedList<LinkedBlockingQueue<Message>>) {
 
     }
 
