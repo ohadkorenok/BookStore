@@ -19,6 +19,7 @@ public class MessageBusImpl implements MessageBus {
     private ConcurrentHashMap<Event, Future> eventToFuture;
     private ConcurrentHashMapSemaphore<Class<? extends Event>, RoundRobinLinkedListSemaphore<SpecificBlockingQueue<Message>>> eventClassToRoundRobinQueues;
     private ConcurrentHashMap<Class<? extends MicroService>, LinkedList<Class<? extends Event>>> serviceClasstoEventClass;
+    private ConcurrentHashMapSemaphore <MicroService, SpecificBlockingQueue<Message>> microServiceToQueue;
 
     public static MessageBusImpl getInstance() {
         if (messageBus == null) {
@@ -50,32 +51,42 @@ public class MessageBusImpl implements MessageBus {
 
     }
 
-
+    /**
+     * This method creates a new future, stores it as the value of the given event in the eventToFuture concurrent hash
+     * map, pushes it to the desired blockingQueue of messages  (using semaphore acquire and release) and returns the
+     * future object to the desired micro service.
+     */
     @Override
     public <T> Future<T> sendEvent(Event<T> e) {
         Future<T> future = new Future<>();
         eventToFuture.put(e, future);
-        RoundRobinLinkedList<SpecificBlockingQueue <Message>> roundRobinBlockingQueueOfEvents= eventClassToRoundRobinQueues.getOrDefault(e.getClass(), null);
-        if(roundRobinBlockingQueueOfEvents != null){
-            SpecificBlockingQueue <Message> currentQueue = roundRobinBlockingQueueOfEvents.getNext();
+        RoundRobinLinkedListSemaphore<SpecificBlockingQueue<Message>> roundRobinBlockingQueueOfEvents = eventClassToRoundRobinQueues.getOrDefault(e.getClass(), null);
+        if (roundRobinBlockingQueueOfEvents != null) {
+            try {
+                roundRobinBlockingQueueOfEvents.getSema().acquire(1);
+                SpecificBlockingQueue<Message> currentQueue = roundRobinBlockingQueueOfEvents.getNext();
+                currentQueue.put(e);
+            } catch (InterruptedException ex) {
+                System.out.println("SendEvent Was interrupted! ");
+            } finally {
+                roundRobinBlockingQueueOfEvents.getSema().release();
+            }
         }
-
-        ///Computation result
         return future;
     }
 
     @Override
     public void register(MicroService m) {
-    	Iterator it=serviceClasstoEventClass.get(m.getClass()).iterator();
-    	while(it.hasNext()){
-    		try{
-    		eventClassToRoundRobinQueues.getSema().acquire();}
-    		catch(InterruptedException e){};
-    		if(eventClassToRoundRobinQueues.get())
+        Iterator it = serviceClasstoEventClass.get(m.getClass()).iterator();
+        while (it.hasNext()) {
+            try {
+                eventClassToRoundRobinQueues.getSema().acquire();
+            } catch (InterruptedException e) {
+            }
+            ;
+            if (eventClassToRoundRobinQueues.get())
 
-		}
-
-
+        }
 
 
 //        synchronized (msQ) {
@@ -107,8 +118,8 @@ public class MessageBusImpl implements MessageBus {
 
     @Override
     public Message awaitMessage(MicroService m) throws InterruptedException {
-        // TODO Auto-generated method stub
-        return null;
+        SpecificBlockingQueue <Message> queue = microServiceToQueue.get(m);
+        return queue.take();
     }
 
     private LinkedBlockingQueue pullCurrentQueue(LinkedList<LinkedBlockingQueue<Message>>) {
