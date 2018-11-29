@@ -3,6 +3,8 @@ package bgu.spl.mics;
 import sun.security.provider.NativePRNG;
 
 import java.util.LinkedList;
+import java.util.Map;
+import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.LinkedBlockingQueue;
 
@@ -14,8 +16,9 @@ import java.util.concurrent.LinkedBlockingQueue;
 public class MessageBusImpl implements MessageBus {
 
     private static MessageBusImpl messageBus;
-    private ConcurrentHashMap<Class <? extends MicroService>, LinkedList<LinkedBlockingQueue<Message>>> msQ;
-    private ConcurrentHashMap<Class <? extends  Event> , Class <? extends MicroService>> evMs;
+    private ConcurrentHashMap<Class<? extends MicroService>, LinkedList<LinkedBlockingQueue<Message>>> msQ;
+    private ConcurrentHashMap<Class<? extends Event>, Class<? extends MicroService>> evMs;
+    private Map<Event, Future> eventFutureMap;
 
 
     public static MessageBusImpl getInstance() {
@@ -57,12 +60,22 @@ public class MessageBusImpl implements MessageBus {
 
     @Override
     public void register(MicroService m) {
-
+        synchronized (msQ) {
+            if (!msQ.containsKey(m.getClass())) {
+                LinkedList<LinkedBlockingQueue<Message>> listToPush = new LinkedList<>();
+                listToPush.add(new LinkedBlockingQueue<>()); // Extend to work with name
+                msQ.put(m.getClass(), listToPush);
+            } else {
+                LinkedList<LinkedBlockingQueue<Message>> listToUpdate = msQ.get(m.getClass());
+                listToUpdate.add(new LinkedBlockingQueue<>()); // Extend to work with name
+                msQ.replace(m.getClass(), listToUpdate);
+            }
+        }
     }
 
     @Override
     public void unregister(MicroService m) {
-        // TODO Auto-generated method stub
+
 
     }
 
