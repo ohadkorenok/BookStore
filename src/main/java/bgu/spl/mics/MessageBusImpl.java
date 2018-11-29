@@ -19,6 +19,7 @@ public class MessageBusImpl implements MessageBus {
     private ConcurrentHashMap<Event, Future> eventToFuture;
     private ConcurrentHashMapSemaphore<Class<? extends Event>, RoundRobinLinkedListSemaphore<SpecificBlockingQueue<Message>>> eventClassToRoundRobinQueues;
     private ConcurrentHashMap<Class<? extends MicroService>, LinkedList<Class<? extends Event>>> serviceClasstoEventClass;
+	private ConcurrentHashMapSemaphore <MicroService, SpecificBlockingQueue<Message>> microServiceToQueue;
 
     public static MessageBusImpl getInstance() {
         if (messageBus == null) {
@@ -61,12 +62,29 @@ public class MessageBusImpl implements MessageBus {
 
     @Override
     public void register(MicroService m) {
-    	Iterator it=serviceClasstoEventClass.get(m.getClass()).iterator();
-    	while(it.hasNext()){
+		for (Class<? extends Event> eventClass : serviceClasstoEventClass.get(m.getClass())) {
     		try{
-    		eventClassToRoundRobinQueues.getSema().acquire();}
-    		catch(InterruptedException e){};
-    		if(eventClassToRoundRobinQueues.get())
+    		eventClassToRoundRobinQueues.getSema().acquire(1);
+    		if(eventClassToRoundRobinQueues.containsKey(eventClass)){
+    			eventClassToRoundRobinQueues.put(eventClass,new RoundRobinLinkedListSemaphore<SpecificBlockingQueue<Message>>());
+    			SpecificBlockingQueue<Message> queuetoPush= new SpecificBlockingQueue<>();
+    			queuetoPush.setNameAndClassOfQueue(m.getName(), m.getClass());
+    			eventClassToRoundRobinQueues.get(eventClass).add(queuetoPush);
+
+			}
+    		else {
+//				eventClassToRoundRobinQueues.getSema().release(1); //releasing before acquiring
+    			try{
+    				eventClassToRoundRobinQueues.get(eventClass).getSema().acquire(1);
+					eventClassToRoundRobinQueues.getSema().release(1);
+				}
+    			catch(InterruptedException ex){}
+    			finally{eventClassToRoundRobinQueues.get(eventClass).getSema().acquire(1);}
+				}
+			}
+    		catch(InterruptedException exc){}
+    		finally{eventClassToRoundRobinQueues.getSema().release(1);}
+
 
 		}
 
