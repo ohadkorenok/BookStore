@@ -2,6 +2,7 @@ package bgu.spl.mics;
 
 import sun.security.provider.NativePRNG;
 
+import java.util.ConcurrentModificationException;
 import java.util.LinkedList;
 import java.util.Map;
 import java.util.concurrent.BlockingQueue;
@@ -16,9 +17,12 @@ import java.util.concurrent.LinkedBlockingQueue;
 public class MessageBusImpl implements MessageBus {
 
     private static MessageBusImpl messageBus;
-    private ConcurrentHashMap<Class<? extends MicroService>, LinkedList<LinkedBlockingQueue<Message>>> msQ;
-    private ConcurrentHashMap<Class<? extends Event>, Class<? extends MicroService>> evMs;
-    private Map<Event, Future> eventFutureMap;
+    private ConcurrentHashMap<Class<? extends MicroService>, MicroService> classToWorker;
+    private ConcurrentHashMap<Event, Future> eventToFuture;
+    private ConcurrentHashMap<MicroService, LinkedList<LinkedBlockingQueue<Message>>> microServiceToLinkedList;
+    private ConcurrentHashMap<Class<? extends Event>, Class<? extends MicroService>> eventToMs;
+//    private Map<Event, Future> eventFutureMap;
+//    private final Event<StubEvent> stubEvent;
 
 
     public static MessageBusImpl getInstance() {
@@ -54,8 +58,10 @@ public class MessageBusImpl implements MessageBus {
 
     @Override
     public <T> Future<T> sendEvent(Event<T> e) {
-        // TODO Auto-generated method stub
-        return null;
+        Future<T> future = new Future<>();
+        eventToFuture.put(e, future);
+        ///Computation result
+        return future;
     }
 
     @Override
@@ -79,10 +85,20 @@ public class MessageBusImpl implements MessageBus {
 
     }
 
+
+    private LinkedBlockingQueue getQueueByEvent(Event e) {
+        LinkedList<LinkedBlockingQueue<Message>> blockingQueueLinkedList = microServiceToLinkedList.getOrDefault(eventToMs.getOrDefault(e, null), null); //TODO :: finish after it.
+
+    }
+
     @Override
     public Message awaitMessage(MicroService m) throws InterruptedException {
         // TODO Auto-generated method stub
         return null;
+    }
+
+    private LinkedBlockingQueue pullCurrentQueue(LinkedList<LinkedBlockingQueue<Message>>){
+
     }
 
 
