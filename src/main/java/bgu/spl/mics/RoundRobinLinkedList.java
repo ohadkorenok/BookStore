@@ -11,7 +11,8 @@ public class RoundRobinLinkedList <T>  extends LinkedList <T> {
         }
     }
 
-    public T getRoundRobin(){
+
+    public T getNext(){
         T value = get(nextIndex);
         step();
         return value;

@@ -13,7 +13,7 @@ public class MessageBusImpl implements MessageBus {
 
     private static MessageBusImpl messageBus;
     private ConcurrentHashMap<Event, Future> eventToFuture;
-    private ConcurrentHashMap<Class<? extends Event>, RoundRobinLinkedList<SpecificBlockingQueue<Message>>> microServiceClassToRoundRobinQueues;
+    private ConcurrentHashMap<Class<? extends Event>, RoundRobinLinkedList<SpecificBlockingQueue<Message>>> eventClassToRoundRobinQueues;
     private ConcurrentHashMap<Class<? extends MicroService>, LinkedList<Class<? extends Event>>> serviceClasstoEventClass;
 
     public static MessageBusImpl getInstance() {
@@ -51,6 +51,11 @@ public class MessageBusImpl implements MessageBus {
     public <T> Future<T> sendEvent(Event<T> e) {
         Future<T> future = new Future<>();
         eventToFuture.put(e, future);
+        RoundRobinLinkedList<SpecificBlockingQueue <Message>> roundRobinBlockingQueueOfEvents= eventClassToRoundRobinQueues.getOrDefault(e.getClass(), null);
+        if(roundRobinBlockingQueueOfEvents != null){
+            SpecificBlockingQueue <Message> currentQueue = roundRobinBlockingQueueOfEvents.getNext();
+        }
+
         ///Computation result
         return future;
     }
