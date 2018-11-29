@@ -1,5 +1,9 @@
 package bgu.spl.mics;
 
+import bgu.spl.mics.application.passiveObjects.ConcurrentHashMapSemaphore;
+import bgu.spl.mics.application.passiveObjects.RoundRobinLinkedListSemaphore;
+
+import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.LinkedBlockingQueue;
@@ -13,7 +17,7 @@ public class MessageBusImpl implements MessageBus {
 
     private static MessageBusImpl messageBus;
     private ConcurrentHashMap<Event, Future> eventToFuture;
-    private ConcurrentHashMap<Class<? extends Event>, RoundRobinLinkedList<SpecificBlockingQueue<Message>>> eventClassToRoundRobinQueues;
+    private ConcurrentHashMapSemaphore<Class<? extends Event>, RoundRobinLinkedListSemaphore<SpecificBlockingQueue<Message>>> eventClassToRoundRobinQueues;
     private ConcurrentHashMap<Class<? extends MicroService>, LinkedList<Class<? extends Event>>> serviceClasstoEventClass;
 
     public static MessageBusImpl getInstance() {
@@ -62,19 +66,31 @@ public class MessageBusImpl implements MessageBus {
 
     @Override
     public void register(MicroService m) {
-        synchronized (msQ) {
-            if (!msQ.containsKey(m.getClass())) {
-                LinkedList<SpecificBlockingQueue<Message>> listToPush = new LinkedList<>();
-                listToPush.add(new SpecificBlockingQueue<>()); // Extend to work with name
-                q = new SpecificBlockingQueue<>(); // Extend to work with name
-                q.setMicroService(m.getClass());
-                msQ.put(m.getClass(), listToPush);
-            } else {
-                LinkedList<SpecificBlockingQueue<Message>> listToUpdate = msQ.get(m.getClass());
-                listToUpdate.add(new SpecificBlockingQueue<>()); // Extend to work with name
-                msQ.replace(m.getClass(), listToUpdate);
-            }
-        }
+    	Iterator it=serviceClasstoEventClass.get(m.getClass()).iterator();
+    	while(it.hasNext()){
+    		try{
+    		eventClassToRoundRobinQueues.getSema().acquire();}
+    		catch(InterruptedException e){};
+    		if(eventClassToRoundRobinQueues.get())
+
+		}
+
+
+
+
+//        synchronized (msQ) {
+//            if (!msQ.containsKey(m.getClass())) {
+//                LinkedList<SpecificBlockingQueue<Message>> listToPush = new LinkedList<>();
+//                listToPush.add(new SpecificBlockingQueue<>()); // Extend to work with name
+//                q = new SpecificBlockingQueue<>(); // Extend to work with name
+//                q.setMicroService(m.getClass());
+//                msQ.put(m.getClass(), listToPush);
+//            } else {
+//                LinkedList<SpecificBlockingQueue<Message>> listToUpdate = msQ.get(m.getClass());
+//                listToUpdate.add(new SpecificBlockingQueue<>()); // Extend to work with name
+//                msQ.replace(m.getClass(), listToUpdate);
+//            }
+//        }
     }
 
     @Override
