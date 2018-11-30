@@ -130,7 +130,6 @@ public class MessageBusImpl implements MessageBus {
     @Override
     public void unregister(MicroService m) {
         SpecificBlockingQueue<Message> qtoRemove = microServiceToQueue.get(m);
-        microServiceInstancetoEventClass.remove(m);
             //*******************//
             //clear data in queue.
 
@@ -152,6 +151,8 @@ public class MessageBusImpl implements MessageBus {
             } catch (InterruptedException e) {
             } finally {
                 eventClassToRoundRobinQueues.get(eventClass).getSema().release(1);
+                microServiceInstancetoEventClass.remove(m);
+
             }
         }
     }
