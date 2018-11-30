@@ -17,7 +17,7 @@ public class MessageBusImpl implements MessageBus {
 
     private static MessageBusImpl messageBus;
     private ConcurrentHashMap<Event, Future> eventToFuture;
-    private ConcurrentHashMapSemaphore<Class<? extends Event>, RoundRobinLinkedListSemaphore<SpecificBlockingQueue<Message>>> eventClassToRoundRobinQueues;
+    private ConcurrentHashMap<Class<? extends Event>, RoundRobinLinkedListSemaphore<SpecificBlockingQueue<Message>>> eventClassToRoundRobinQueues;
     private ConcurrentHashMap<Class<? extends MicroService>, LinkedList<Class<? extends Event>>> serviceClasstoEventClass;
 	private ConcurrentHashMapSemaphore <MicroService, SpecificBlockingQueue<Message>> microServiceToQueue;
 
@@ -63,53 +63,71 @@ public class MessageBusImpl implements MessageBus {
     @Override
     public void register(MicroService m) {
 		for (Class<? extends Event> eventClass : serviceClasstoEventClass.get(m.getClass())) {
-    		try{
-    		eventClassToRoundRobinQueues.getSema().acquire(1);
-    		if(eventClassToRoundRobinQueues.containsKey(eventClass)){
-    			eventClassToRoundRobinQueues.put(eventClass,new RoundRobinLinkedListSemaphore<SpecificBlockingQueue<Message>>());
-    			SpecificBlockingQueue<Message> queuetoPush= new SpecificBlockingQueue<>();
-    			queuetoPush.setNameAndClassOfQueue(m.getName(), m.getClass());
-    			eventClassToRoundRobinQueues.get(eventClass).add(queuetoPush);
 
+    		if(!eventClassToRoundRobinQueues.containsKey(eventClass)){
+    			eventClassToRoundRobinQueues.put(eventClass,new RoundRobinLinkedListSemaphore<SpecificBlockingQueue<Message>>());
+    			pushingQueue(m,eventClass);
 			}
     		else {
-//				eventClassToRoundRobinQueues.getSema().release(1); //releasing before acquiring
-    			try{
-    				eventClassToRoundRobinQueues.get(eventClass).getSema().acquire(1);
-					eventClassToRoundRobinQueues.getSema().release(1);
-				}
-    			catch(InterruptedException ex){}
-    			finally{eventClassToRoundRobinQueues.get(eventClass).getSema().acquire(1);}
-				}
+    		    pushingQueue(m,eventClass);
+            }
 			}
-    		catch(InterruptedException exc){}
-    		finally{eventClassToRoundRobinQueues.getSema().release(1);}
-
-
 		}
 
-
-
-
-//        synchronized (msQ) {
-//            if (!msQ.containsKey(m.getClass())) {
-//                LinkedList<SpecificBlockingQueue<Message>> listToPush = new LinkedList<>();
-//                listToPush.add(new SpecificBlockingQueue<>()); // Extend to work with name
-//                q = new SpecificBlockingQueue<>(); // Extend to work with name
-//                q.setMicroService(m.getClass());
-//                msQ.put(m.getClass(), listToPush);
-//            } else {
-//                LinkedList<SpecificBlockingQueue<Message>> listToUpdate = msQ.get(m.getClass());
-//                listToUpdate.add(new SpecificBlockingQueue<>()); // Extend to work with name
-//                msQ.replace(m.getClass(), listToUpdate);
-//            }
-//        }
-    }
+    /** pushing new queues to the Linked-List, acquiring lock on Data-Structure inside value of HashMap.
+     *
+     * @param m instance of Micro-Service
+     * @param eventClass type of Event
+     */
+		private void pushingQueue(MicroService m,Class<? extends Event> eventClass){
+		    try{
+		        eventClassToRoundRobinQueues.get(eventClass).getSema().acquire(1);
+                SpecificBlockingQueue<Message> queuetoPush= new SpecificBlockingQueue<>();
+                queuetoPush.setNameAndClassOfQueue(m.getName(), m.getClass());
+                eventClassToRoundRobinQueues.get(eventClass).add(queuetoPush);}
+		    catch(InterruptedException ex){}
+		    finally{eventClassToRoundRobinQueues.get(eventClass).getSema().release(1);}
+        }
 
     @Override
     public void unregister(MicroService m) {
+        for (Class<? extends Event> eventClass : serviceClasstoEventClass.get(m.getClass())){
+            SpecificBlockingQueue<Message> qtoRemove=searchnGet(m,eventClass);
+            //Down-grading the lock in order to resolve the results to null and clear from Messages.
+            synchronized (qtoRemove){
+                for (Message i: qtoRemove) {
+                    if(i instanceof Event)
+                        complete((Event)i,null); }
+                qtoRemove.clear();
+            }
+            //Up-grading the lock in order to remove the queue from the LL
+            try{eventClassToRoundRobinQueues.get(eventClass).getSema().acquire(1);
+                eventClassToRoundRobinQueues.remove(qtoRemove);}
+            catch(InterruptedException e){}
+            finally{eventClassToRoundRobinQueues.get(eventClass).getSema().release(1);}
+        }
+    }
 
-
+    /**Searching the specificblockingqueue assigned to the micro-service in order to down-grade the lock inside
+     * unregister.
+     * @param m
+     * @param eventClass
+     * @return
+     */
+    private SpecificBlockingQueue<Message> searchnGet(MicroService m,Class<? extends Event> eventClass){
+        SpecificBlockingQueue<Message> toRet=null;
+        try{
+            eventClassToRoundRobinQueues.get(eventClass).getSema().acquire(1);
+            for (SpecificBlockingQueue<Message> i: eventClassToRoundRobinQueues.get(eventClass)) {
+                if(i.getName()==m.getName()) {
+                    toRet=i;
+                    break;
+                }
+            }
+        }
+        catch(InterruptedException ex){}
+        finally{eventClassToRoundRobinQueues.get(eventClass).getSema().release(1);}
+        return toRet;
     }
 
 
