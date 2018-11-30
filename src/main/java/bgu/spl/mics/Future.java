@@ -13,13 +13,14 @@ import java.util.concurrent.TimeUnit;
 //@INV: if isDone() == false  -> get() = BLOCKING
 public class Future<T> {
 
-	private boolean done;
+	private volatile boolean done;
+	private T value;
 	
 	/**
 	 * This should be the the only public constructor in this class.
 	 */
 	public Future() {
-		//TODO: implement this
+		done = false;
 	}
 	
 	/**
@@ -33,8 +34,17 @@ public class Future<T> {
 	//@PRE:  none
 	//@POST  trivial
 	public T get() {
-		//TODO: implement this.
-		return null;
+		synchronized (this) {
+			while (!isDone()) {
+				try {
+					wait();
+				} catch (InterruptedException e) {
+					System.out.println("The thread was interrupted!!! ");
+				}
+			}
+			return value;
+		}
+
 	}
 	
 	/**
@@ -43,7 +53,16 @@ public class Future<T> {
 	//@PRE: isDone() == false
 	//@POST: get() is NOT BLOCKING && isDone() == true
 	public void resolve (T result) {
-		//TODO: implement this.
+		synchronized (this) {
+			if (!isDone()) {
+				value = result;
+				done = true;
+				notifyAll();
+			} else {
+				System.out.println("future object has been resolved already! ");
+			}
+		}
+
 	}
 	
 	/**
@@ -69,8 +88,17 @@ public class Future<T> {
 	//@PRE: none
 	//@POST: trivial
 	public T get(long timeout, TimeUnit unit) {
-		//TODO: implement this.
-		return null;
+		synchronized (this) {
+			while (!isDone()) {
+				try {
+					wait(unit.toSeconds(timeout));
+					return value;
+				} catch (InterruptedException e) {
+					System.out.println("The thread was interrupted! ");
+				}
+			}
+			return value;
+		}
 	}
 
 }
