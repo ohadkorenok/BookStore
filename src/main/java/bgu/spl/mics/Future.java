@@ -14,7 +14,7 @@ import java.util.concurrent.TimeUnit;
 public class Future<T> {
 
 	private volatile boolean done;
-	private T value;
+	private T value = null;
 	
 	/**
 	 * This should be the the only public constructor in this class.
@@ -79,7 +79,7 @@ public class Future<T> {
      * This method is non-blocking, it has a limited amount of time determined
      * by {@code timeout}
      * <p>
-     * @param timout 	the maximal amount of time units to wait for the result.
+     * @param timeout	the maximal amount of time units to wait for the result.
      * @param unit		the {@link TimeUnit} time units to wait.
      * @return return the result of type T if it is available, if not, 
      * 	       wait for {@code timeout} TimeUnits {@code unit}. If time has
