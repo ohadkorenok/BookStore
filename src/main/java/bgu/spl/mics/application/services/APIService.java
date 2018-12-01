@@ -17,7 +17,8 @@ public class APIService extends MicroService{
 	private List orderList;
 
 	public APIService(String name,List orderList) {
-		super("Change_This_Name");
+		super(name);
+		this.orderList=orderList;
 		// TODO Implement this
 	}
 

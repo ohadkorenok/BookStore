@@ -1,6 +1,13 @@
 package bgu.spl.mics.application.services;
 
+import bgu.spl.mics.Callback;
+import bgu.spl.mics.Future;
 import bgu.spl.mics.MicroService;
+import bgu.spl.mics.application.Messages.BookOrderEvent;
+import bgu.spl.mics.application.Messages.CheckAvailabilityandReduceEvent;
+import bgu.spl.mics.application.Messages.TickBroadcast;
+import bgu.spl.mics.application.passiveObjects.MoneyRegister;
+import sun.plugin2.jvm.RemoteJVMLauncher;
 
 /**
  * Selling service in charge of taking orders from customers.
@@ -14,15 +21,20 @@ import bgu.spl.mics.MicroService;
  */
 public class SellingService extends MicroService{
 
-	public SellingService() {
-		super("Change_This_Name");
-		// TODO Implement this
+	private MoneyRegister accountant=MoneyRegister.getInstance();
+
+	public SellingService(String name) {
+		super(name);
 	}
 
 	@Override
 	protected void initialize() {
-		// TODO Implement this
-		
+		subscribeEvent(BookOrderEvent.class,event ->{
+			Future<Boolean> f1=sendEvent(new CheckAvailabilityandReduceEvent());
+			if(f1.get()){
+			}
+		});
+		//subscribeBroadcast(TickBroadcast.class, );
 	}
 
 }
