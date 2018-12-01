@@ -1,6 +1,7 @@
 package bgu.spl.mics.application.services;
 
 import bgu.spl.mics.MicroService;
+import bgu.spl.mics.application.Messages.TickBroadcast;
 
 /**
  * InventoryService is in charge of the book inventory and stock.
@@ -22,7 +23,6 @@ public class InventoryService extends MicroService{
 	@Override
 	protected void initialize() {
 //		this.subscribeEvent(Event event.getclass(), callback());
-//		this.subscribeBroadcast();
 
 	}
 

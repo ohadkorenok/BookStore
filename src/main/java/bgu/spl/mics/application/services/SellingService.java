@@ -34,7 +34,7 @@ public class SellingService extends MicroService{
 	@Override
 	protected void initialize() {
 		subscribeBroadcast(TickBroadcast.class,tickIncoming->{
-			this.time=tickIncoming.getTick();
+			this.time=tickIncoming.getCurrentTick();
 		} );
 		subscribeEvent(BookOrderEvent.class,event ->{
 			int proccessTick=this.time;
