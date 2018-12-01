@@ -28,7 +28,7 @@ public class RoundRobinLinkedListTest {
     @Test
     public void testGetRoundRobin() {
         assertEquals(lista.getFirst(), listo.getFirst());
-        lista.getRoundRobin();
+        lista.getNext();
 
     }
 

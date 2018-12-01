@@ -1,6 +1,5 @@
 package bgu.spl.mics;
 
-import bgu.spl.mics.application.passiveObjects.ConcurrentHashMapSemaphore;
 import bgu.spl.mics.application.passiveObjects.RoundRobinLinkedListSemaphore;
 
 import java.util.LinkedList;
@@ -75,7 +74,19 @@ public class MessageBusImpl implements MessageBus {
 
     @Override
     public void sendBroadcast(Broadcast b) {
-
+        RoundRobinLinkedListSemaphore<SpecificBlockingQueue<Message>> roundRobinBlockingQueueOfBroadcasts = broadcastToRoundRobinQueues.getOrDefault(b.getClass(), null);
+        if (roundRobinBlockingQueueOfBroadcasts != null) {
+            try {
+                roundRobinBlockingQueueOfBroadcasts.getSema().acquire(1);
+                for (SpecificBlockingQueue<Message> it: roundRobinBlockingQueueOfBroadcasts) {
+                    it.put(b);
+                }
+            } catch (InterruptedException ex) {
+                System.out.println("SendBroadcast Was interrupted! ");
+            } finally {
+                roundRobinBlockingQueueOfBroadcasts.getSema().release(1);
+            }
+        }
     }
 
     /**
@@ -96,7 +107,7 @@ public class MessageBusImpl implements MessageBus {
             } catch (InterruptedException ex) {
                 System.out.println("SendEvent Was interrupted! ");
             } finally {
-                roundRobinBlockingQueueOfEvents.getSema().release();
+                roundRobinBlockingQueueOfEvents.getSema().release(1);
             }
         }
         return future;
@@ -141,7 +152,7 @@ public class MessageBusImpl implements MessageBus {
         }
         microServiceToQueue.remove(m);
             //*******************//
-        //the list inside the for-loop is applied only to one-thread, therefore it is not shared-resource.
+        //the list inside the for-loop is applied only to one-thread or MicroService, therefore it is not shared-resource.
         for (Class<? extends Message> messageClass : microServiceInstancetoMessageClass.get(m)) {
             if(messageClass.isAssignableFrom(Event.class)) {
                 qtoRemove = searchnGet(m, eventClassToRoundRobinQueues.get((Class<? extends Event>) messageClass));
