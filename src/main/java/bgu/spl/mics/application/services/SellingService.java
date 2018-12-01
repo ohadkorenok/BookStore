@@ -23,15 +23,21 @@ import sun.plugin2.jvm.RemoteJVMLauncher;
 public class SellingService extends MicroService{
 
 	private MoneyRegister accountant;
+	private int time;
 
 	public SellingService(String name) {
 		super(name);
 		accountant=MoneyRegister.getInstance();
+		time=0;
 	}
 
 	@Override
 	protected void initialize() {
+		subscribeBroadcast(TickBroadcast.class,tickIncoming->{
+			this.time=tickIncoming.getTick();
+		} );
 		subscribeEvent(BookOrderEvent.class,event ->{
+			int proccessTick=this.time;
 			Future<Boolean> f1=sendEvent(new CheckAvailabilityandReduceEvent());
 			if(f1.get()){
 				if(event.getCustomer().getAvailableCreditAmount()>0){
@@ -43,7 +49,6 @@ public class SellingService extends MicroService{
 					complete(event,null);
 			}
 		});
-		//subscribeBroadcast(TickBroadcast.class, );
 	}
 
 }
