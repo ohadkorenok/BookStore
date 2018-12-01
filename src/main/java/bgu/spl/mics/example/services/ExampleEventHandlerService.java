@@ -27,17 +27,17 @@ public class ExampleEventHandlerService extends MicroService {
 
     @Override
     protected void initialize() {
-//        System.out.println("Event Handler " + getName() + " started");
-//
-//        subscribeEvent(ExampleEvent.class, ev -> {
-//            mbt--;
-////            System.out.println("Event Handler " + getName() + " got a new event from " + ev.getSenderName() + "! (mbt: " + mbt + ")");
-//            complete(ev, "Hello from " + getName());
-//            if (mbt == 0) {
-//                System.out.println("Event Handler " + getName() + " terminating.");
-//                terminate();
-//            }
-//        });
+        System.out.println("Event Handler " + getName() + " started");
+
+        subscribeEvent(ExampleEvent.class, ev -> {
+            mbt--;
+            System.out.println("Event Handler " + getName() + " got a new event from " + ev.getSenderName() + "! (mbt: " + mbt + ")");
+            complete(ev, "Hello from " + getName());
+            if (mbt == 0) {
+                System.out.println("Event Handler " + getName() + " terminating.");
+                terminate();
+            }
+        });
     }
 
 }

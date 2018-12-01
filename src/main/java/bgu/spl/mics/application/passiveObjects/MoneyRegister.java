@@ -12,6 +12,7 @@ package bgu.spl.mics.application.passiveObjects;
  * You can add ONLY private fields and methods to this class as you see fit.
  */
 public class MoneyRegister {
+
 	
 	/**
      * Retrieves the single instance of this class.

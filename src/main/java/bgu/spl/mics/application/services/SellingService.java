@@ -1,6 +1,14 @@
 package bgu.spl.mics.application.services;
 
+import bgu.spl.mics.Callback;
+import bgu.spl.mics.Future;
 import bgu.spl.mics.MicroService;
+import bgu.spl.mics.application.Messages.BookOrderEvent;
+import bgu.spl.mics.application.Messages.CheckAvailabilityandReduceEvent;
+import bgu.spl.mics.application.Messages.TickBroadcast;
+import bgu.spl.mics.application.passiveObjects.MoneyRegister;
+import bgu.spl.mics.application.passiveObjects.OrderReceipt;
+import sun.plugin2.jvm.RemoteJVMLauncher;
 
 /**
  * Selling service in charge of taking orders from customers.
@@ -14,15 +22,33 @@ import bgu.spl.mics.MicroService;
  */
 public class SellingService extends MicroService{
 
-	public SellingService() {
-		super("Change_This_Name");
-		// TODO Implement this
+	private MoneyRegister accountant;
+	private int time;
+
+	public SellingService(String name) {
+		super(name);
+		accountant=MoneyRegister.getInstance();
+		time=0;
 	}
 
 	@Override
 	protected void initialize() {
-		// TODO Implement this
-
+		subscribeBroadcast(TickBroadcast.class,tickIncoming->{
+			this.time=tickIncoming.getTick();
+		} );
+		subscribeEvent(BookOrderEvent.class,event ->{
+			int proccessTick=this.time;
+			Future<Boolean> f1=sendEvent(new CheckAvailabilityandReduceEvent());
+			if(f1.get()){
+				if(event.getCustomer().getAvailableCreditAmount()>0){
+					accountant.chargeCreditCard(event.getCustomer(),event.getPrice());
+					OrderReceipt reciept=new OrderReceipt();
+					complete(event,reciept);
+				}
+				else
+					complete(event,null);
+			}
+		});
 	}
 
 }

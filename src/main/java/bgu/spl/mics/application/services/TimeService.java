@@ -1,6 +1,7 @@
 package bgu.spl.mics.application.services;
 
 import bgu.spl.mics.MicroService;
+import bgu.spl.mics.application.Messages.TickBroadcast;
 import bgu.spl.mics.application.passiveObjects.Inventory;
 import bgu.spl.mics.application.passiveObjects.MoneyRegister;
 import bgu.spl.mics.application.passiveObjects.ResourcesHolder;
@@ -40,7 +41,7 @@ public class TimeService extends MicroService{
                 }
             }, speed);
             TickBroadcast tick = new TickBroadcast (currentTick);
-	        sendBroadcast(TimeBroadcast);
+	        sendBroadcast(tick);
         }
 	}
 
