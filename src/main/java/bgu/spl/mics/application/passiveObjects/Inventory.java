@@ -14,7 +14,7 @@ import java.io.*;
  * You can add ONLY private fields and methods to this class as you see fit.
  */
 public class Inventory implements java.io.Serializable{
-	private ConcurrentHashMap<String,BookInventoryInfo> inv;
+	private BookInventoryInfo[] bookCollection;
 	private static Inventory inventory;
 
 	/**
@@ -37,7 +37,10 @@ public class Inventory implements java.io.Serializable{
 	//@PRE: inventory !=null
 	//@POST: inv initialized
 	public void load (BookInventoryInfo[ ] inventory ) {
-		
+		bookCollection = new BookInventoryInfo[inventory.length];
+		for (int i = 0; i < inventory.length; i++) {
+			bookCollection[i] = inventory[i];
+		}
 	}
 	
 	/**
