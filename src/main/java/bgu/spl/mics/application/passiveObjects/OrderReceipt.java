@@ -16,9 +16,11 @@ public class OrderReceipt {
 	private int issuedTick;
 	private int proccessesTick;
 	private int orderTick;
+	private static int idCounter=0;
 
-	public OrderReceipt(int orderId,String seller,int customerId,String bookTitle,int price,int issuedTick,int proccessesTick,int orderTick){
-		this.OrderId=orderId;
+	public OrderReceipt(String seller,int customerId,String bookTitle,int price,int issuedTick,int proccessesTick,int orderTick){
+		idCounter++;
+		this.OrderId=idCounter;
 		this.seller=seller;
 		this.customerId=customerId;
 		this.price=price;

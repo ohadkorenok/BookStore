@@ -34,7 +34,7 @@ public class SellingService extends MicroService{
 	@Override
 	protected void initialize() {
 		subscribeBroadcast(TickBroadcast.class,tickIncoming->{
-			this.time=tickIncoming.getTick();
+			this.time=tickIncoming.getCurrentTick();
 		} );
 		subscribeEvent(BookOrderEvent.class,event ->{
 			int proccessTick=this.time;
@@ -42,7 +42,7 @@ public class SellingService extends MicroService{
 			if(f1.get()){
 				if(event.getCustomer().getAvailableCreditAmount()>0){
 					accountant.chargeCreditCard(event.getCustomer(),event.getPrice());
-					OrderReceipt reciept=new OrderReceipt();
+					OrderReceipt reciept=new OrderReceipt(getName(),event.getCustomer().getId(),event.getName(),event.getPrice(),event.getissuedTick(),proccessTick,time);
 					complete(event,reciept);
 				}
 				else
