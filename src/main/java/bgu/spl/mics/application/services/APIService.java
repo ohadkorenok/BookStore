@@ -1,8 +1,7 @@
 package bgu.spl.mics.application.services;
 
 import bgu.spl.mics.MicroService;
-
-import java.util.List;
+import bgu.spl.mics.application.passiveObjects.Customer;
 
 /**
  * APIService is in charge of the connection between a client and the store.
@@ -14,18 +13,21 @@ import java.util.List;
  * You MAY change constructor signatures and even add new public constructors.
  */
 public class APIService extends MicroService{
-	private List orderList;
-
-	public APIService(String name,List orderList) {
+	private Customer customer;
+	public APIService(String name, Customer customer) {
 		super(name);
-		this.orderList=orderList;
-		// TODO Implement this
+		customer = customer;
 	}
 
 	@Override
 	protected void initialize() {
-		// TODO Implement this
-		
 	}
 
+	public Customer getCustomer() {
+		return customer;
+	}
+
+	public void setCustomer(Customer customer) {
+		this.customer = customer;
+	}
 }

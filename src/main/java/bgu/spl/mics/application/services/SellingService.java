@@ -7,6 +7,7 @@ import bgu.spl.mics.application.Messages.BookOrderEvent;
 import bgu.spl.mics.application.Messages.CheckAvailabilityandReduceEvent;
 import bgu.spl.mics.application.Messages.TickBroadcast;
 import bgu.spl.mics.application.passiveObjects.MoneyRegister;
+import bgu.spl.mics.application.passiveObjects.OrderReceipt;
 import sun.plugin2.jvm.RemoteJVMLauncher;
 
 /**
@@ -21,10 +22,11 @@ import sun.plugin2.jvm.RemoteJVMLauncher;
  */
 public class SellingService extends MicroService{
 
-	private MoneyRegister accountant=MoneyRegister.getInstance();
+	private MoneyRegister accountant;
 
 	public SellingService(String name) {
 		super(name);
+		accountant=MoneyRegister.getInstance();
 	}
 
 	@Override
@@ -32,6 +34,13 @@ public class SellingService extends MicroService{
 		subscribeEvent(BookOrderEvent.class,event ->{
 			Future<Boolean> f1=sendEvent(new CheckAvailabilityandReduceEvent());
 			if(f1.get()){
+				if(event.getCustomer().getAvailableCreditAmount()>0){
+					accountant.chargeCreditCard(event.getCustomer(),event.getPrice());
+					OrderReceipt reciept=new OrderReceipt();
+					complete(event,reciept);
+				}
+				else
+					complete(event,null);
 			}
 		});
 		//subscribeBroadcast(TickBroadcast.class, );

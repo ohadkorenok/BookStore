@@ -59,6 +59,7 @@ public abstract class MicroService implements Runnable {
      */
     protected final <T, E extends Event<T>> void subscribeEvent(Class<E> type, Callback<E> callback) {
         tol.put(type, callback);
+        magicBus.subscribeEvent(type, this);
     }
 
     /**

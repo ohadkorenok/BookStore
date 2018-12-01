@@ -10,71 +10,77 @@ import java.util.List;
  */
 public class Customer {
 
-	private String name;
-	private int id;
-	private String address;
-	private int distance;
-	private volatile int amount;
-	private volatile int creditCardNumber;
-	/**
+    private String name;
+    private int id;
+    private String address;
+    private int distance;
+    private volatile int amount;
+    private volatile int creditCardNumber;
+
+    /**
      * Retrieves the name of the customer.
      */
-	public String getName() {
-		// TODO Implement this
-		return null;
-	}
+    public Customer(int id, String name, String address, int distance, int amount, int creditCardNumber) {
+        id = id;
+        name = name;
+        address = address;
+        distance = distance;
+        amount = amount;
+        creditCardNumber = creditCardNumber;
+    }
 
-	/**
-     * Retrieves the ID of the customer  . 
-     */
-	public int getId() {
-		// TODO Implement this
-		return 0;
-	}
-	
-	/**
-     * Retrieves the address of the customer.  
-     */
-	public String getAddress() {
-		// TODO Implement this
-		return null;
-	}
-	
-	/**
-     * Retrieves the distance of the customer from the store.  
-     */
-	public int getDistance() {
-		// TODO Implement this
-		return 0;
-	}
+    public String getName() {
+        return name;
+    }
 
-	
-	/**
+    /**
+     * Retrieves the ID of the customer  .
+     */
+    public int getId() {
+        return id;
+    }
+
+    /**
+     * Retrieves the address of the customer.
+     */
+    public String getAddress() {
+        return address;
+    }
+
+    /**
+     * Retrieves the distance of the customer from the store.
+     */
+    public int getDistance() {
+        return distance;
+    }
+
+
+    /**
      * Retrieves a list of receipts for the purchases this customer has made.
      * <p>
+     *
      * @return A list of receipts.
      */
-	public List<OrderReceipt> getCustomerReceiptList() {
-		// TODO Implement this
-		return null;
-	}
-	
-	/**
+    public List<OrderReceipt> getCustomerReceiptList() {
+        // TODO Implement this
+        return null;
+    }
+
+    /**
      * Retrieves the amount of money left on this customers credit card.
      * <p>
-     * @return Amount of money left.   
+     *
+     * @return Amount of money left.
      */
-	public int getAvailableCreditAmount() {
-		// TODO Implement this
-		return 0;
-	}
-	
-	/**
-     * Retrieves this customers credit card serial number.    
+    public int getAvailableCreditAmount() {
+        return amount;
+    }
+
+    /**
+     * Retrieves this customers credit card serial number.
      */
-	public int getCreditNumber() {
-		// TODO Implement this
-		return 0;
-	}
-	
+    public int getCreditNumber() {
+        return creditCardNumber;
+    }
+
 }
