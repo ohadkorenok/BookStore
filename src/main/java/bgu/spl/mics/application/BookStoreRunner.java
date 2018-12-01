@@ -95,30 +95,48 @@ public class BookStoreRunner {
         int resourceServiceWorker = (int) (double) servicesSettings.get("resourcesService");
         ArrayList customers = (ArrayList) servicesSettings.get("customers");
         LinkedTreeMap timeService = (LinkedTreeMap) servicesSettings.get("time");
-        for (int i = 0; i < customers.size(); i++) {
-            Runnable runnableSession = new APIService("ApiService" + i, buildCustomerFromConfig((LinkedTreeMap) customers.get(i)));
-            startTask(runnableSession);
-        }
+
+
+        /***********   Initialize TimeService   ***********/
+
+        Runnable runnableTime = new TimeService();
+        startTask(runnableTime);
+
+        /***********   Initialize SellingService   ***********/
+
         for (int i = 0; i < sellingServiceWorkers; i++) {
             Runnable runnableSeller = new SellingService();
             startTask(runnableSeller);
         }
+
+        /***********   Initialize InventoryService   ***********/
+
+
         for (int i = 0; i < inventoryServiceWorkers; i++) {
             Runnable runnableInventory = new InventoryService();
             startTask(runnableInventory);
         }
 
+
+        /***********   Initialize LogisticsService   ***********/
+
         for (int i = 0; i < logisticsServiceWorkers; i++) {
             Runnable runnableLogistics = new LogisticsService();
             startTask(runnableLogistics);
         }
+
+        /***********   Initialize ResourceService   ***********/
+
         for (int i = 0; i < resourceServiceWorker; i++) {
             Runnable runnableResource = new ResourceService();
             startTask(runnableResource);
         }
-        Runnable runnableTime = new TimeService();
-        startTask(runnableTime);
+        /***********   Initialize APIService   ***********/
 
+        for (int i = 0; i < customers.size(); i++) {
+            Runnable runnableSession = new APIService("ApiService" + i, buildCustomerFromConfig((LinkedTreeMap) customers.get(i)));
+            startTask(runnableSession);
+        }
 
     }
 }

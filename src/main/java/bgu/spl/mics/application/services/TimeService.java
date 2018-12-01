@@ -1,6 +1,12 @@
 package bgu.spl.mics.application.services;
 
 import bgu.spl.mics.MicroService;
+import bgu.spl.mics.application.passiveObjects.Inventory;
+import bgu.spl.mics.application.passiveObjects.MoneyRegister;
+import bgu.spl.mics.application.passiveObjects.ResourcesHolder;
+
+import java.util.Timer;
+import java.util.TimerTask;
 
 /**
  * TimeService is the global system timer There is only one instance of this micro-service.
@@ -14,15 +20,28 @@ import bgu.spl.mics.MicroService;
  */
 public class TimeService extends MicroService{
 
-	public TimeService() {
-		super("Change_This_Name");
-		// TODO Implement this
+    private int speed;
+    private int duration;
+    private int currentTick = 1;
+	public TimeService(int speed, int duration) {
+		super("TimeService");
+		speed = speed;
+		duration = duration;
 	}
 
 	@Override
 	protected void initialize() {
-		// TODO Implement this
-		
+        Timer timer = new Timer();
+        while(currentTick <= duration) {
+            timer.schedule(new TimerTask() {
+                @Override
+                public void run() {
+                    currentTick++;
+                }
+            }, speed);
+            TickBroadcast tick = new TickBroadcast (currentTick);
+	        sendBroadcast(TimeBroadcast);
+        }
 	}
 
 }

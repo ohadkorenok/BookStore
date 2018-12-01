@@ -21,6 +21,7 @@ public class APIService extends MicroService{
 
 	@Override
 	protected void initialize() {
+
 	}
 
 	public Customer getCustomer() {
