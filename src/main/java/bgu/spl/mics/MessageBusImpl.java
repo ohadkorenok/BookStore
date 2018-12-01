@@ -1,5 +1,6 @@
 package bgu.spl.mics;
 
+import bgu.spl.mics.application.passiveObjects.ConcurrentHashMapSemaphore;
 import bgu.spl.mics.application.passiveObjects.RoundRobinLinkedListSemaphore;
 
 import java.util.LinkedList;
@@ -17,6 +18,7 @@ public class MessageBusImpl implements MessageBus {
     private ConcurrentHashMap<Class<? extends Event>, RoundRobinLinkedListSemaphore<SpecificBlockingQueue<Message>>> eventClassToRoundRobinQueues = new ConcurrentHashMap<>(); //subscribe
     private ConcurrentHashMap<MicroService, LinkedList<Class<? extends Event>>> microServiceInstancetoEventClass = new ConcurrentHashMap<>(); //subscribe event
     private ConcurrentHashMap<MicroService, SpecificBlockingQueue<Message>> microServiceToQueue = new ConcurrentHashMap<>(); // register
+    private ConcurrentHashMap<Class<? extends Broadcast>,RoundRobinLinkedListSemaphore<SpecificBlockingQueue<Message>>> broadcastToRoundRobinQueues= new ConcurrentHashMap<>();
 
     public static MessageBusImpl getInstance() {
         if (messageBus == null) {
@@ -47,17 +49,19 @@ public class MessageBusImpl implements MessageBus {
         }
         if(!eventClassToRoundRobinQueues.containsKey(type)){
             eventClassToRoundRobinQueues.put(type, new RoundRobinLinkedListSemaphore<>());
-            fetchNPushQueue(m , type);
+            fetchNPushQueue(m ,type,eventClassToRoundRobinQueues);
         }
         else{
-            fetchNPushQueue(m, type);
+            fetchNPushQueue(m,type,eventClassToRoundRobinQueues);
         }
 
     }
 
     @Override
     public void subscribeBroadcast(Class<? extends Broadcast> type, MicroService m) {
-
+        if(!broadcastToRoundRobinQueues.contains(type))
+            broadcastToRoundRobinQueues.put(type,new RoundRobinLinkedListSemaphore<>());
+        fetchNPushQueue(m,type,broadcastToRoundRobinQueues);
     }
 
     /**
@@ -111,19 +115,19 @@ public class MessageBusImpl implements MessageBus {
     }
 
     /**
-     * pushing new queues to the Linked-List, acquiring lock on Data-Structure inside value of HashMap.
+     * pushing the queue to the required Linked-List, acquiring lock on Data-Structure inside value of HashMap.
      *
      * @param m          instance of Micro-Service
      * @param eventClass type of Event
      */
-    private void fetchNPushQueue(MicroService m, Class<? extends Event> eventClass) {
+    private void fetchNPushQueue(MicroService m, Class<? extends Event> eventClass, ConcurrentHashMap<<Class<? extends Message>>,RoundRobinLinkedListSemaphore<SpecificBlockingQueue<Message>>> map) {
         try {
-            eventClassToRoundRobinQueues.get(eventClass).getSema().acquire(1);
+            map.get(eventClass).getSema().acquire(1);
             SpecificBlockingQueue<Message> queuetoPush = microServiceToQueue.get(m);
-            eventClassToRoundRobinQueues.get(eventClass).add(queuetoPush);
+            map.get(eventClass).add(queuetoPush);
         } catch (InterruptedException ex) {
         } finally {
-            eventClassToRoundRobinQueues.get(eventClass).getSema().release(1);
+            map.get(eventClass).getSema().release(1);
         }
     }
 
