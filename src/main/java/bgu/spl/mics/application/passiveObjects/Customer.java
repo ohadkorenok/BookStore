@@ -10,6 +10,12 @@ import java.util.List;
  */
 public class Customer {
 
+	private String name;
+	private int id;
+	private String address;
+	private int distance;
+	private volatile int amount;
+	private volatile int creditCardNumber;
 	/**
      * Retrieves the name of the customer.
      */
