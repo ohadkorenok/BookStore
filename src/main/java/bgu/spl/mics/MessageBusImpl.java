@@ -17,7 +17,7 @@ public class MessageBusImpl implements MessageBus {
     private ConcurrentHashMap<Event, Future> eventToFuture = new ConcurrentHashMap<>(); //send
     private ConcurrentHashMap<Class<? extends Event>, RoundRobinLinkedListSemaphore<SpecificBlockingQueue<Message>>> eventClassToRoundRobinQueues = new ConcurrentHashMap<>(); //subscribe
     private ConcurrentHashMap<MicroService, LinkedList<Class<? extends Event>>> microServiceInstancetoEventClass = new ConcurrentHashMap<>(); //subscribe event
-    private ConcurrentHashMap<MicroService, SpecificBlockingQueue<Message>> microServiceToQueue = new ConcurrentHashMap<>(); // register
+    private ConcurrentHashMap<MicroService, SpecificBlockingQueue<Message>> microServiceToQueue = new ConcurrentHashMap<>(); // register , unregister.
     private ConcurrentHashMap<Class<? extends Broadcast>,RoundRobinLinkedListSemaphore<SpecificBlockingQueue<Message>>> broadcastToRoundRobinQueues= new ConcurrentHashMap<>();
 
     public static MessageBusImpl getInstance() {
@@ -49,11 +49,8 @@ public class MessageBusImpl implements MessageBus {
         }
         if(!eventClassToRoundRobinQueues.containsKey(type)){
             eventClassToRoundRobinQueues.put(type, new RoundRobinLinkedListSemaphore<>());
-            fetchNPushQueue(m ,type,eventClassToRoundRobinQueues);
         }
-        else{
-            fetchNPushQueue(m,type,eventClassToRoundRobinQueues);
-        }
+        fetchNPushQueue(m ,type,eventClassToRoundRobinQueues.get(type));
 
     }
 
@@ -120,14 +117,14 @@ public class MessageBusImpl implements MessageBus {
      * @param m          instance of Micro-Service
      * @param eventClass type of Event
      */
-    private void fetchNPushQueue(MicroService m, Class<? extends Event> eventClass, ConcurrentHashMap<<Class<? extends Message>>,RoundRobinLinkedListSemaphore<SpecificBlockingQueue<Message>>> map) {
+    private void fetchNPushQueue(MicroService m, Class<? extends Message> messageClass, RoundRobinLinkedListSemaphore<SpecificBlockingQueue<Message>> queueList) {
         try {
-            map.get(eventClass).getSema().acquire(1);
+            queueList.getSema().acquire(1);
             SpecificBlockingQueue<Message> queuetoPush = microServiceToQueue.get(m);
-            map.get(eventClass).add(queuetoPush);
+            queueList.add(queuetoPush);
         } catch (InterruptedException ex) {
         } finally {
-            map.get(eventClass).getSema().release(1);
+            queueList.getSema().release(1);
         }
     }
 
