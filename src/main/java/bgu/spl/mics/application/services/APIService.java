@@ -1,6 +1,7 @@
 package bgu.spl.mics.application.services;
 
 import bgu.spl.mics.MicroService;
+import bgu.spl.mics.application.Messages.TickBroadcast;
 import bgu.spl.mics.application.passiveObjects.Customer;
 
 /**
@@ -13,6 +14,7 @@ import bgu.spl.mics.application.passiveObjects.Customer;
  * You MAY change constructor signatures and even add new public constructors.
  */
 public class APIService extends MicroService{
+	private int time;
 	private Customer customer;
 	public APIService(String name, Customer customer) {
 		super(name);
@@ -21,7 +23,9 @@ public class APIService extends MicroService{
 
 	@Override
 	protected void initialize() {
-
+		subscribeBroadcast(TickBroadcast.class, tickIncoming->{
+			this.time=tickIncoming.getCurrentTick();
+		} );
 	}
 
 	public Customer getCustomer() {
