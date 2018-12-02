@@ -1,13 +1,15 @@
 package bgu.spl.mics.application.services;
 
-//import bgu.spl.mics.Callback;
+
 import bgu.spl.mics.Future;
 import bgu.spl.mics.MicroService;
 import bgu.spl.mics.application.Messages.BookOrderEvent;
 import bgu.spl.mics.application.Messages.CheckAvailabilityandReduceEvent;
 import bgu.spl.mics.application.Messages.TickBroadcast;
+import bgu.spl.mics.application.passiveObjects.Inventory;
 import bgu.spl.mics.application.passiveObjects.MoneyRegister;
 import bgu.spl.mics.application.passiveObjects.OrderReceipt;
+import bgu.spl.mics.application.passiveObjects.ResourcesHolder;
 
 /**
  * Selling service in charge of taking orders from customers.
@@ -19,7 +21,7 @@ import bgu.spl.mics.application.passiveObjects.OrderReceipt;
  * You can add private fields and public methods to this class.
  * You MAY change constructor signatures and even add new public constructors.
  */
-public class SellingService extends MicroService{
+public class SellingService extends MicroService {
 
 	private MoneyRegister accountant;
 	private int time;
@@ -32,10 +34,10 @@ public class SellingService extends MicroService{
 
 	@Override
 	protected void initialize() {
-		subscribeBroadcast(TickBroadcast.class,tickIncoming->{
+		subscribeBroadcast(TickBroadcast.class, tickIncoming->{
 			this.time=tickIncoming.getCurrentTick();
 		} );
-		subscribeEvent(BookOrderEvent.class,event ->{
+		subscribeEvent(BookOrderEvent.class, event ->{
 			int proccessTick=this.time;
 			Future<Boolean> f1=sendEvent(new CheckAvailabilityandReduceEvent());
 			if(f1.get()){

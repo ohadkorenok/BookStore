@@ -99,13 +99,13 @@ public class BookStoreRunner {
 
         /***********   Initialize TimeService   ***********/
 
-        Runnable runnableTime = new TimeService();
+        Runnable runnableTime = new TimeService((int)timeService.get("speed"),(int) timeService.get("duration"));
         startTask(runnableTime);
 
         /***********   Initialize SellingService   ***********/
 
         for (int i = 0; i < sellingServiceWorkers; i++) {
-            Runnable runnableSeller = new SellingService();
+            Runnable runnableSeller = new SellingService("SellerService"+i);
             startTask(runnableSeller);
         }
 
