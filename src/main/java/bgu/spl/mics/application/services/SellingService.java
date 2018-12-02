@@ -1,6 +1,6 @@
 package bgu.spl.mics.application.services;
 
-import bgu.spl.mics.Callback;
+//import bgu.spl.mics.Callback;
 import bgu.spl.mics.Future;
 import bgu.spl.mics.MicroService;
 import bgu.spl.mics.application.Messages.BookOrderEvent;
@@ -8,7 +8,6 @@ import bgu.spl.mics.application.Messages.CheckAvailabilityandReduceEvent;
 import bgu.spl.mics.application.Messages.TickBroadcast;
 import bgu.spl.mics.application.passiveObjects.MoneyRegister;
 import bgu.spl.mics.application.passiveObjects.OrderReceipt;
-import sun.plugin2.jvm.RemoteJVMLauncher;
 
 /**
  * Selling service in charge of taking orders from customers.
@@ -40,14 +39,23 @@ public class SellingService extends MicroService{
 			int proccessTick=this.time;
 			Future<Boolean> f1=sendEvent(new CheckAvailabilityandReduceEvent());
 			if(f1.get()){
-				if(event.getCustomer().getAvailableCreditAmount()>0){
-					accountant.chargeCreditCard(event.getCustomer(),event.getPrice());
-					OrderReceipt reciept=new OrderReceipt(getName(),event.getCustomer().getId(),event.getName(),event.getPrice(),event.getissuedTick(),proccessTick,time);
-					complete(event,reciept);
+				try {
+					event.getCustomer().getSema().acquire(1);
+					if (event.getCustomer().getAvailableCreditAmount() > 0) {
+						accountant.chargeCreditCard(event.getCustomer(), event.getPrice());
+						OrderReceipt reciept = new OrderReceipt(getName(), event.getCustomer().getId(), event.getName(), event.getPrice(), event.getissuedTick(), proccessTick, time);
+						accountant.file(reciept);
+						complete(event, reciept);
+					}
+					else
+						complete(event, false); //Couldn't Charge CreditCard
 				}
-				else
-					complete(event,null);
+
+				catch(InterruptedException e){}
+				finally{event.getCustomer().getSema().release(1);}
 			}
+			else
+				complete(event,false); //Book not available
 		});
 	}
 

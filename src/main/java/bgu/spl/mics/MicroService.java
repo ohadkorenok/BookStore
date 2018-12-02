@@ -165,7 +165,7 @@ public abstract class MicroService implements Runnable {
                     System.out.println("no callback available for message : "+m.toString());
                 }
                 else{
-                    callbackFunction.call();
+                    callbackFunction.call(m);
                 }
             }
             catch (InterruptedException e){

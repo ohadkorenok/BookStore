@@ -1,6 +1,8 @@
 package bgu.spl.mics.application.passiveObjects;
 
 
+import java.util.LinkedList;
+import java.util.List;
 
 /**
  * Passive object representing the store finance management. 
@@ -12,13 +14,15 @@ package bgu.spl.mics.application.passiveObjects;
  * You can add ONLY private fields and methods to this class as you see fit.
  */
 public class MoneyRegister {
+	MoneyRegister accountant=MoneyRegister.getInstance();
+	volatile int totalEarnings=0;
+	List<OrderReceipt> recList=new LinkedList<>();
 
 	
 	/**
      * Retrieves the single instance of this class.
      */
 	public static MoneyRegister getInstance() {
-		//TODO: Implement this
 		return null;
 	}
 	
@@ -45,6 +49,7 @@ public class MoneyRegister {
      * @param amount 	amount to charge
      */
 	public void chargeCreditCard(Customer c, int amount) {
+		// Synchronizing Customer.
 		// TODO Implement this
 	}
 	

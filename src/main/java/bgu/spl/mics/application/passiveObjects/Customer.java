@@ -1,6 +1,7 @@
 package bgu.spl.mics.application.passiveObjects;
 
 import java.util.List;
+import java.util.concurrent.Semaphore;
 
 /**
  * Passive data-object representing a customer of the store.
@@ -16,6 +17,7 @@ public class Customer {
     private int distance;
     private volatile int amount;
     private volatile int creditCardNumber;
+    private Semaphore locker;
 
     /**
      * Retrieves the name of the customer.
@@ -27,7 +29,10 @@ public class Customer {
         distance = distance;
         amount = amount;
         creditCardNumber = creditCardNumber;
+        locker=new Semaphore(1);
     }
+
+    public Semaphore getSema(){return locker;}
 
     public String getName() {
         return name;
