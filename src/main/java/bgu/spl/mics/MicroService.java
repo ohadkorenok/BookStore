@@ -84,6 +84,7 @@ public abstract class MicroService implements Runnable {
      */
     protected final <B extends Broadcast> void subscribeBroadcast(Class<B> type, Callback<B> callback) {
         tol.put(type, callback);
+        magicBus.subscribeBroadcast(type, this);
     }
 
     /**
@@ -138,6 +139,7 @@ public abstract class MicroService implements Runnable {
      */
     protected final void terminate() {
         this.terminated = true;
+        magicBus.unregister(this);
     }
 
     /**
@@ -160,7 +162,7 @@ public abstract class MicroService implements Runnable {
         while (!terminated) {
             try{
                 Message m = magicBus.awaitMessage(this);
-                Callback callbackFunction = tol.getOrDefault(m, null);
+                Callback callbackFunction = tol.getOrDefault(m.getClass(), null);
                 if(callbackFunction == null){
                     System.out.println("no callback available for message : "+m.toString());
                 }

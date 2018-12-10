@@ -30,4 +30,12 @@ public class RoundRobinLinkedList <T>  extends LinkedList <T> {
     public int getNextIndex() {
         return nextIndex;
     }
+
+    @Override
+    public boolean remove(Object o) {
+        int index = this.indexOf(o);
+        boolean answer = super.remove(o);
+        updateIndexAfterRemove(index);
+        return answer;
+    }
 }

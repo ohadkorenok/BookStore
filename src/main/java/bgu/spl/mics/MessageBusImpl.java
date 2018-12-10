@@ -26,6 +26,20 @@ public class MessageBusImpl implements MessageBus {
         return messageBus;
     }
 
+    private void putIntoMsInstanceToMessageClassHashMap(Class <?extends Message>  type, MicroService m){
+        if (!microServiceInstancetoMessageClass.containsKey(m)) {
+            LinkedList<Class<? extends Message>> messageList = new LinkedList<>();
+            messageList.add(type);
+            microServiceInstancetoMessageClass.put(m, messageList);
+        } else {
+            LinkedList<Class<? extends Message>> messageList = microServiceInstancetoMessageClass.get(m);
+            synchronized (messageList) {
+                messageList.add(type);
+            }
+            microServiceInstancetoMessageClass.put(m, messageList);
+        }
+    }
+
     /**
      * Subscribes the given event class to the microservice instance.
      *
@@ -35,17 +49,7 @@ public class MessageBusImpl implements MessageBus {
      */
     @Override
     public <T> void subscribeEvent(Class<? extends Event<T>> type, MicroService m) {
-        if (!microServiceInstancetoMessageClass.containsKey(m)) {
-            LinkedList<Class<? extends Message>> eventList = new LinkedList<>();
-            eventList.add(type);
-            microServiceInstancetoMessageClass.put(m, eventList);
-        } else {
-            LinkedList<Class<? extends Message>> eventList = microServiceInstancetoMessageClass.get(m);
-            synchronized (eventList) {
-                eventList.add(type);
-            }
-            microServiceInstancetoMessageClass.put(m, eventList);
-        }
+        putIntoMsInstanceToMessageClassHashMap(type, m);
         if(!eventClassToRoundRobinQueues.containsKey(type))
             eventClassToRoundRobinQueues.put(type, new RoundRobinLinkedListSemaphore<>());
         fetchNPushQueue(m ,type,eventClassToRoundRobinQueues.get(type));
@@ -54,7 +58,8 @@ public class MessageBusImpl implements MessageBus {
 
     @Override
     public void subscribeBroadcast(Class<? extends Broadcast> type, MicroService m) {
-        if(!broadcastToRoundRobinQueues.contains(type))
+        putIntoMsInstanceToMessageClassHashMap(type, m);
+        if(!broadcastToRoundRobinQueues.containsKey(type))
             broadcastToRoundRobinQueues.put(type,new RoundRobinLinkedListSemaphore<>());
         fetchNPushQueue(m,type,broadcastToRoundRobinQueues.get(type));
     }
@@ -110,6 +115,7 @@ public class MessageBusImpl implements MessageBus {
                 roundRobinBlockingQueueOfEvents.getSema().release(1);
             }
         }
+        else {return null;}
         return future;
     }
 
@@ -153,12 +159,12 @@ public class MessageBusImpl implements MessageBus {
         microServiceToQueue.remove(m);
             //*******************//
         //the list inside the for-loop is applied only to one-thread or MicroService, therefore it is not shared-resource.
-        for (Class<? extends Message> messageClass : microServiceInstancetoMessageClass.get(m)) {
-            if(messageClass.isAssignableFrom(Event.class)) {
+        for (Class<? extends Message> messageClass : microServiceInstancetoMessageClass.getOrDefault(m, new LinkedList<Class<? extends Message>>())) {
+            if(Event.class.isAssignableFrom(messageClass)) {
                 qtoRemove = searchnGet(m, eventClassToRoundRobinQueues.get((Class<? extends Event>) messageClass));
                 deleteSpecificQueue(eventClassToRoundRobinQueues.get((Class<? extends Event>) messageClass),qtoRemove);
             }
-            else if(messageClass.isAssignableFrom(Broadcast.class)){
+            else if(Broadcast.class.isAssignableFrom(messageClass)){
                 qtoRemove=searchnGet(m,broadcastToRoundRobinQueues.get((Class<? extends Broadcast>)messageClass));
                 deleteSpecificQueue(broadcastToRoundRobinQueues.get((Class<? extends Broadcast>) messageClass),qtoRemove);
             }
