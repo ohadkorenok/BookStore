@@ -50,14 +50,14 @@ public class SellingService extends MicroService {
 						complete(event, reciept);
 					}
 					else
-						complete(event, false); //Couldn't Charge CreditCard
+						complete(event, null); //Couldn't Charge CreditCard
 				}
 
 				catch(InterruptedException e){}
 				finally{event.getCustomer().getSema().release(1);}
 			}
 			else
-				complete(event,false); //Book not available
+				complete(event,null); //Book not available
 		});
 	}
 
