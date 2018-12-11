@@ -16,7 +16,7 @@ public class Customer {
     private String address;
     private int distance;
     private volatile int amount;
-    private volatile int creditCardNumber;
+    private int creditCardNumber;
     private Semaphore locker;
 
     /**
