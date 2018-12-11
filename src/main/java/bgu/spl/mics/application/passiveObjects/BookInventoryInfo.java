@@ -6,7 +6,7 @@ package bgu.spl.mics.application.passiveObjects;
  * <p>
  * You may add fields and methods to this class as you see fit (including public methods).
  */
-public class BookInventoryInfo implements Comparable{
+public class BookInventoryInfo{
 
 	private String bookTitle;
 	private int price;
@@ -45,18 +45,6 @@ public class BookInventoryInfo implements Comparable{
 	public int getPrice() {
 		return price;
 	}
-
-
-	@Override
-	public int compareTo(Object o) {
-		int answer = 0;
-		if(o instanceof BookInventoryInfo){
-			return ((BookInventoryInfo) o).getBookTitle().compareTo(bookTitle);
-			}
-		else{
-			throw new ClassCastException("The given argument is not bookInfo! ");
-		}
-		}
 
 	public void setAmountInInventory(int amountInInventory) {
 		this.amountInInventory = amountInInventory;
