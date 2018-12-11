@@ -1,4 +1,6 @@
 package bgu.spl.mics.application.Messages;
 
-public class findDriverEvent {
+import bgu.spl.mics.Event;
+
+public class findDriverEvent<T> implements Event<T> {
 }

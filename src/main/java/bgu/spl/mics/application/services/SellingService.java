@@ -7,10 +7,7 @@ import bgu.spl.mics.application.Messages.BookOrderEvent;
 import bgu.spl.mics.application.Messages.CheckBookInfo;
 import bgu.spl.mics.application.Messages.TakeBookEvent;
 import bgu.spl.mics.application.Messages.TickBroadcast;
-import bgu.spl.mics.application.passiveObjects.Inventory;
-import bgu.spl.mics.application.passiveObjects.MoneyRegister;
-import bgu.spl.mics.application.passiveObjects.OrderReceipt;
-import bgu.spl.mics.application.passiveObjects.ResourcesHolder;
+import bgu.spl.mics.application.passiveObjects.*;
 
 /**
  * Selling service in charge of taking orders from customers.
@@ -51,12 +48,14 @@ public class SellingService extends MicroService {
 							accountant.file(reciept);
 							complete(event, reciept);
 						} else
-							complete(event, null); //Couldn't Charge CreditCard
+							//Couldn't Charge CreditCard
+							complete(event,new NullReciept("",0,"",0,0,0,0));
 					}
 				}
 			}
 			else
-				complete(event,null); //Book not available
+				//Book not available
+				complete(event,new NullReciept("",0,"",0,0,0,0));
 		});
 	}
 
