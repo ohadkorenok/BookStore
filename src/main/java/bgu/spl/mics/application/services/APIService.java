@@ -8,7 +8,6 @@ import bgu.spl.mics.application.Messages.TickBroadcast;
 import bgu.spl.mics.application.passiveObjects.*;
 
 import java.util.Arrays;
-import java.util.HashMap;
 
 /**
  * APIService is in charge of the connection between a client and the store.
@@ -44,7 +43,7 @@ public class APIService extends MicroService {
                 OrderReceipt futuroReciept = futuro.get();
                 if (!(futuroReciept instanceof NullReciept)) {
                     sendEvent(new DeliveryEvent(customer.getAddress(), customer.getDistance()));
-                    customer.getCustomerReceiptList().add(futuro.get());
+                    customer.getCustomerReceiptList().add(futuro.get()); // add the issued tick.
                 }
                 currentIndex++;
             }
