@@ -1,6 +1,9 @@
 package bgu.spl.mics.application.services;
 
+import bgu.spl.mics.Future;
 import bgu.spl.mics.MicroService;
+import bgu.spl.mics.application.Messages.CheckAvailabilityandReduceEvent;
+import bgu.spl.mics.application.passiveObjects.ResourcesHolder;
 
 /**
  * ResourceService is in charge of the store resources - the delivery vehicles.
@@ -12,16 +15,15 @@ import bgu.spl.mics.MicroService;
  * You MAY change constructor signatures and even add new public constructors.
  */
 public class ResourceService extends MicroService{
+	private ResourcesHolder rH;
 
-	public ResourceService() {
-		super("Change_This_Name");
-		// TODO Implement this
+	public ResourceService(String name) {
+		super(name);
+		rH=ResourcesHolder.getInstance();
 	}
 
 	@Override
 	protected void initialize() {
-		// TODO Implement this
-		
 	}
 
 }

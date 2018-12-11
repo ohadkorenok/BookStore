@@ -39,7 +39,7 @@ public class SellingService extends MicroService {
 		} );
 		subscribeEvent(BookOrderEvent.class, event ->{
 			int proccessTick=this.time;
-			Future<Boolean> f1=sendEvent(new CheckAvailabilityandReduceEvent());
+			Future<Boolean> f1=sendEvent(new CheckAvailabilityandReduceEvent(event.getName()));
 			if(f1.get()){
 				try {
 					event.getCustomer().getSema().acquire(1);
@@ -50,14 +50,14 @@ public class SellingService extends MicroService {
 						complete(event, reciept);
 					}
 					else
-						complete(event, false); //Couldn't Charge CreditCard
+						complete(event, null); //Couldn't Charge CreditCard
 				}
 
 				catch(InterruptedException e){}
 				finally{event.getCustomer().getSema().release(1);}
 			}
 			else
-				complete(event,false); //Book not available
+				complete(event,null); //Book not available
 		});
 	}
 

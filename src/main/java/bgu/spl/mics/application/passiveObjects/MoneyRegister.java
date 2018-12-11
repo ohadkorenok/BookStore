@@ -14,7 +14,9 @@ import java.util.List;
  * You can add ONLY private fields and methods to this class as you see fit.
  */
 public class MoneyRegister {
-	MoneyRegister accountant=MoneyRegister.getInstance();
+	private static class SingleMoneyRegister {
+		private static MoneyRegister accountant=new MoneyRegister();
+	}
 	volatile int totalEarnings=0;
 	List<OrderReceipt> recList=new LinkedList<>();
 
@@ -23,7 +25,7 @@ public class MoneyRegister {
      * Retrieves the single instance of this class.
      */
 	public static MoneyRegister getInstance() {
-		return null;
+		return SingleMoneyRegister.accountant;
 	}
 	
 	/**

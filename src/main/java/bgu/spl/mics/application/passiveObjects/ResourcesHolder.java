@@ -1,6 +1,7 @@
 package bgu.spl.mics.application.passiveObjects;
 
 import bgu.spl.mics.Future;
+import com.sun.xml.internal.bind.v2.runtime.unmarshaller.XsiNilLoader;
 
 /**
  * Passive object representing the resource manager.
@@ -12,17 +13,16 @@ import bgu.spl.mics.Future;
  * You can add ONLY private methods and fields to this class.
  */
 public class ResourcesHolder {
-	private static ResourcesHolder resourceHolder = null;
+	private static class SingleResourcesHolder {
+		private static ResourcesHolder resourceHolder = new ResourcesHolder();
+	}
 	private DeliveryVehicle[] deliveryVehicles;
 	
 	/**
      * Retrieves the single instance of this class.
      */
 	public static ResourcesHolder getInstance() {
-		if(resourceHolder == null){
-			resourceHolder = new ResourcesHolder();
-		}
-		return resourceHolder;
+		return SingleResourcesHolder.resourceHolder;
 	}
 	
 	/**

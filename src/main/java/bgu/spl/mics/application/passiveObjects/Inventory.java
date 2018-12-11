@@ -15,16 +15,15 @@ import java.io.*;
  */
 public class Inventory implements java.io.Serializable{
 	private BookInventoryInfo[] bookCollection;
-	private static Inventory inventory;
+	private static class SingleInventory {
+		private static Inventory inventory=new Inventory();
+	}
 
 	/**
      * Retrieves the single instance of this class.
      */
 	public static Inventory getInstance() {
-		if(inventory == null){
-			inventory = new Inventory();
-		}
-		return inventory;
+		return SingleInventory.inventory;
 	}
 	
 	/**

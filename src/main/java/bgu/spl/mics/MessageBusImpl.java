@@ -11,8 +11,9 @@ import java.util.concurrent.ConcurrentHashMap;
  * Only private fields and methods can be added to this class.
  */
 public class MessageBusImpl implements MessageBus {
-
-    private static MessageBusImpl messageBus;
+    private static class SingleMessageBus {
+        private static MessageBusImpl messageBus=new MessageBusImpl();
+    }
     private ConcurrentHashMap<Event, Future> eventToFuture = new ConcurrentHashMap<>(); //send
     private ConcurrentHashMap<Class<? extends Event>, RoundRobinLinkedListSemaphore<SpecificBlockingQueue<Message>>> eventClassToRoundRobinQueues = new ConcurrentHashMap<>(); //subscribe
     private ConcurrentHashMap<MicroService, LinkedList<Class<? extends Message>>> microServiceInstancetoMessageClass = new ConcurrentHashMap<>(); //subscribe event
@@ -20,10 +21,7 @@ public class MessageBusImpl implements MessageBus {
     private ConcurrentHashMap<Class<? extends Broadcast>,RoundRobinLinkedListSemaphore<SpecificBlockingQueue<Message>>> broadcastToRoundRobinQueues= new ConcurrentHashMap<>();
 
     public static MessageBusImpl getInstance() {
-        if (messageBus == null) {
-            messageBus = new MessageBusImpl();
-        }
-        return messageBus;
+        return SingleMessageBus.messageBus;
     }
 
     private void putIntoMsInstanceToMessageClassHashMap(Class <?extends Message>  type, MicroService m){
