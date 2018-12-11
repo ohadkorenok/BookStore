@@ -22,6 +22,7 @@ public class OrderReceipt {
 		idCounter++;
 		this.OrderId=idCounter;
 		this.seller=seller;
+		this.bookTitle=bookTitle;
 		this.customerId=customerId;
 		this.price=price;
 		this.issuedTick=issuedTick;
