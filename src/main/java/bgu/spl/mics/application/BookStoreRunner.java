@@ -1,6 +1,7 @@
 package bgu.spl.mics.application;
 
 import bgu.spl.mics.application.passiveObjects.*;
+import bgu.spl.mics.application.services.*;
 import com.google.gson.Gson;
 import com.google.gson.internal.LinkedTreeMap;
 import javafx.util.Pair;
@@ -29,6 +30,7 @@ public class BookStoreRunner {
             Inventory inventory = initializeInventoryAndLoadBooks((ArrayList) settings.getOrDefault("initialInventory", null));
             ResourcesHolder resourcesHolder = initializeResourceHolder((ArrayList) settings.getOrDefault("initialResources", null));
             initializeServicesAndCustomers((LinkedTreeMap) settings.getOrDefault("services", null));
+            System.out.println("WELCOME TO NITZAN AND OHAD BOOKSTORE. ENJOY YOUR STAY");
 
         } catch (FileNotFoundException e) {
             System.out.println("file not found!");
@@ -109,35 +111,34 @@ public class BookStoreRunner {
         /***********   Initialize SellingService   ***********/
 
         for (int i = 0; i < sellingServiceWorkers; i++) {
-//            Runnable runnableSeller = new SellingService("SellerService" + i);
-//            startTask(runnableSeller);
+            Runnable runnableSeller = new SellingService("SellerService" + i);
+            startTask(runnableSeller);
         }
         /***********   Initialize InventoryService   ***********/
         for (int i = 0; i < inventoryServiceWorkers; i++) {
-//            Runnable runnableInventory = new InventoryService();
-//            startTask(runnableInventory);
+            Runnable runnableInventory = new InventoryService("InventoryService "+i);
+            startTask(runnableInventory);
         }
         /***********   Initialize LogisticsService   ***********/
         for (int i = 0; i < logisticsServiceWorkers; i++) {
-//            Runnable runnableLogistics = new LogisticsService();
-//            startTask(runnableLogistics);
+            Runnable runnableLogistics = new LogisticsService("LogisticsSerivce "+i);
+            startTask(runnableLogistics);
         }
         /***********   Initialize ResourceService   ***********/
         for (int i = 0; i < resourceServiceWorker; i++) {
-//            Runnable runnableResource = new ResourceService();
-//            startTask(runnableResource);
+            Runnable runnableResource = new ResourceService("ResourceService "+i);
+            startTask(runnableResource);
         }
         /***********   Initialize APIService   ***********/
         for (int i = 0; i < customers.size(); i++) {
             Pair <Customer, OrderSchedule []> pair = buildCustomerFromConfig((LinkedTreeMap) customers.get(i));
-            String ohad = "ohad";
-//            Runnable runnableSession = new APIService("ApiService" + i, buildCustomerFromConfig((LinkedTreeMap) customers.get(i)));
-//            startTask(runnableSession);
+            Runnable runnableSession = new APIService("APISerivce "+i, pair.getKey(), pair.getValue());
+            startTask(runnableSession);
         }
 
         /***********   Initialize TimeService   ***********/
-//        Runnable runnableTime = new TimeService((int) timeService.get("speed"), (int) timeService.get("duration"));
-//        startTask(runnableTime);
+        Runnable runnableTime = new TimeService((int)(double) timeService.get("speed"), (int) (double)timeService.get("duration"));
+        startTask(runnableTime);
 
     }
 }

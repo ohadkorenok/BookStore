@@ -39,8 +39,8 @@ public class SellingService extends MicroService {
 			int proccessTick=this.time;
 			Future<Integer> f1=sendEvent(new CheckBookInfo(event.getName()));
 			if(f1.get()>0) {
-				Future<Boolean> f2 = sendEvent(new TakeBookEvent(event.getName()));
 				synchronized (event.getCustomer()) {
+					Future<Boolean> f2 = sendEvent(new TakeBookEvent(event.getName()));
 					if (f2.get()) {
 						if (event.getCustomer().getAvailableCreditAmount() > 0) {
 							accountant.chargeCreditCard(event.getCustomer(), f1.get());

@@ -1,6 +1,9 @@
 package bgu.spl.mics.application.passiveObjects;
 
 
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.ObjectOutputStream;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -38,7 +41,9 @@ public class MoneyRegister {
      * @param r		The receipt to save in the money register.
      */
 	public void file (OrderReceipt r) {
-		//TODO: Implement this.
+		synchronized (recList){
+			recList.add(r);
+		}
 	}
 	
 	/**
@@ -64,6 +69,15 @@ public class MoneyRegister {
      * This method is called by the main method in order to generate the output.. 
      */
 	public void printOrderReceipts(String filename) {
-		//TODO: Implement this
+		try{
+			FileOutputStream fos = new FileOutputStream(filename);
+			ObjectOutputStream oos = new ObjectOutputStream(fos);
+			oos.writeObject(recList);
+			oos.close();
+			fos.close();
+		}
+		catch (IOException e ){
+			System.out.println("error opening the file to write!");
+		}
 	}
 }

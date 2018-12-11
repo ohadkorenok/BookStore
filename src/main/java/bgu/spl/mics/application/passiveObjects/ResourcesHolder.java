@@ -3,6 +3,7 @@ package bgu.spl.mics.application.passiveObjects;
 import bgu.spl.mics.Future;
 import com.sun.xml.internal.bind.v2.runtime.unmarshaller.XsiNilLoader;
 
+import java.util.Arrays;
 import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.Semaphore;
 
@@ -19,11 +20,17 @@ public class ResourcesHolder {
 	private static class SingleResourcesHolder {
 		private static ResourcesHolder resourceHolder = new ResourcesHolder();
 	}
-	private ConcurrentLinkedQueue<DeliveryVehicle> queueOfVehicles = new ConcurrentLinkedQueue<>();
-	private Semaphore locker;
+    private ConcurrentLinkedQueue<DeliveryVehicle> queueOfVehicles;
+    private ConcurrentLinkedQueue<Future<DeliveryVehicle>> futuretoResolve;
+    private Semaphore locker;
 	/**
      * Retrieves the single instance of this class.
      */
+	private ResourcesHolder(){
+        queueOfVehicles = new ConcurrentLinkedQueue<>();
+        futuretoResolve = new ConcurrentLinkedQueue<>();
+    }
+
 	public static ResourcesHolder getInstance() {
 		return SingleResourcesHolder.resourceHolder;
 	}
@@ -37,8 +44,10 @@ public class ResourcesHolder {
      */
 	public Future<DeliveryVehicle> acquireVehicle() {
 		Future<DeliveryVehicle> futuro=new Future();
-		locker.tryAcquire(1);
-
+		if(locker.tryAcquire())
+			futuro.resolve(queueOfVehicles.poll());
+		else
+			futuretoResolve.add(futuro);
 		return futuro;
 	}
 	
@@ -49,7 +58,15 @@ public class ResourcesHolder {
      * @param vehicle	{@link DeliveryVehicle} to be released.
      */
 	public void releaseVehicle(DeliveryVehicle vehicle) {
-		//TODO: Implement this
+		queueOfVehicles.add(vehicle);
+		locker.release();
+		assignWaitersToVehicle();
+	}
+	private void assignWaitersToVehicle(){
+		if(!futuretoResolve.isEmpty()) {
+			if(locker.tryAcquire())
+				futuretoResolve.poll().resolve(queueOfVehicles.poll());
+		}
 	}
 	
 	/**
@@ -58,9 +75,7 @@ public class ResourcesHolder {
      * @param vehicles	Array of {@link DeliveryVehicle} instances to store.
      */
 	public void load(DeliveryVehicle[] vehicles) {
-		for (int i = 0; i < vehicles.length; i++) {
-			queueOfVehicles.add(vehicles[i]);
-		}
+		queueOfVehicles.addAll(Arrays.asList(vehicles));
 		locker=new Semaphore(vehicles.length);
 	}
 
