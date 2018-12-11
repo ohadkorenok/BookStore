@@ -1,9 +1,9 @@
 package bgu.spl.mics.application;
 
 import bgu.spl.mics.application.passiveObjects.*;
-import bgu.spl.mics.application.services.*;
 import com.google.gson.Gson;
 import com.google.gson.internal.LinkedTreeMap;
+import javafx.util.Pair;
 
 import java.io.FileNotFoundException;
 import java.io.FileReader;
@@ -71,7 +71,7 @@ public class BookStoreRunner {
         return resourcesHolder;
     }
 
-    private static Customer buildCustomerFromConfig(LinkedTreeMap customerFromConfig) {
+    private static Pair<Customer, OrderSchedule[]> buildCustomerFromConfig(LinkedTreeMap customerFromConfig) {
         int id = (int) (double) customerFromConfig.get("id");
         String name = (String) customerFromConfig.get("name");
         String address = (String) customerFromConfig.get("address");
@@ -80,7 +80,15 @@ public class BookStoreRunner {
         int creditCardNumber = (int) (double) creditCard.get("number");
         int creditCardAmount = (int) (double) creditCard.get("amount");
 
-        return new Customer(id, name, address, distance, creditCardAmount, creditCardNumber);
+        ArrayList orderSchedule = (ArrayList)customerFromConfig.get("orderSchedule");
+        OrderSchedule [] orderSchedules = new OrderSchedule[orderSchedule.size()];
+        for (int i = 0; i < orderSchedule.size(); i++) {
+            LinkedTreeMap bookOrder = (LinkedTreeMap)orderSchedule.get(i);
+            OrderSchedule bookInfo = new OrderSchedule((String)bookOrder.get("bookTitle"),(int)(double)bookOrder.get("tick"));
+            orderSchedules[i] = bookInfo;
+        }
+        Customer customer = new Customer(id, name, address, distance, creditCardAmount, creditCardNumber);
+        return new Pair<>(customer, orderSchedules);
     }
 
     private static void startTask(Runnable task) {
@@ -94,49 +102,42 @@ public class BookStoreRunner {
         int logisticsServiceWorkers = (int) (double) servicesSettings.get("logistics");
         int resourceServiceWorker = (int) (double) servicesSettings.get("resourcesService");
         ArrayList customers = (ArrayList) servicesSettings.get("customers");
+
         LinkedTreeMap timeService = (LinkedTreeMap) servicesSettings.get("time");
 
-
-        /***********   Initialize TimeService   ***********/
-
-        Runnable runnableTime = new TimeService((int)timeService.get("speed"),(int) timeService.get("duration"));
-        startTask(runnableTime);
 
         /***********   Initialize SellingService   ***********/
 
         for (int i = 0; i < sellingServiceWorkers; i++) {
-            Runnable runnableSeller = new SellingService("SellerService"+i);
-            startTask(runnableSeller);
+//            Runnable runnableSeller = new SellingService("SellerService" + i);
+//            startTask(runnableSeller);
         }
-
         /***********   Initialize InventoryService   ***********/
-
-
         for (int i = 0; i < inventoryServiceWorkers; i++) {
-            Runnable runnableInventory = new InventoryService();
-            startTask(runnableInventory);
+//            Runnable runnableInventory = new InventoryService();
+//            startTask(runnableInventory);
         }
-
-
         /***********   Initialize LogisticsService   ***********/
-
         for (int i = 0; i < logisticsServiceWorkers; i++) {
-            Runnable runnableLogistics = new LogisticsService();
-            startTask(runnableLogistics);
+//            Runnable runnableLogistics = new LogisticsService();
+//            startTask(runnableLogistics);
         }
-
         /***********   Initialize ResourceService   ***********/
-
         for (int i = 0; i < resourceServiceWorker; i++) {
-            Runnable runnableResource = new ResourceService();
-            startTask(runnableResource);
+//            Runnable runnableResource = new ResourceService();
+//            startTask(runnableResource);
         }
         /***********   Initialize APIService   ***********/
-
         for (int i = 0; i < customers.size(); i++) {
-            Runnable runnableSession = new APIService("ApiService" + i, buildCustomerFromConfig((LinkedTreeMap) customers.get(i)));
-            startTask(runnableSession);
+            Pair <Customer, OrderSchedule []> pair = buildCustomerFromConfig((LinkedTreeMap) customers.get(i));
+            String ohad = "ohad";
+//            Runnable runnableSession = new APIService("ApiService" + i, buildCustomerFromConfig((LinkedTreeMap) customers.get(i)));
+//            startTask(runnableSession);
         }
+
+        /***********   Initialize TimeService   ***********/
+//        Runnable runnableTime = new TimeService((int) timeService.get("speed"), (int) timeService.get("duration"));
+//        startTask(runnableTime);
 
     }
 }

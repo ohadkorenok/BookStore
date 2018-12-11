@@ -20,17 +20,17 @@ import java.util.Arrays;
  */
 public class APIService extends MicroService {
     private int time;
-    private OrderScedhule[] orderScedhules;
+    private OrderSchedule[] orderSchedules;
     private int currentIndex = 0;
     private Customer customer;
 
-    public APIService(String name, Customer customer1, OrderScedhule[] orderScedhule) {
+    public APIService(String name, Customer customer1, OrderSchedule[] orderSchedule) {
         super(name);
         customer = customer1;
-        Arrays.sort(orderScedhule);
-        orderScedhules = new OrderScedhule[orderScedhule.length];
-        for (int i = 0; i < orderScedhule.length; i++) {
-            orderScedhules[i] = orderScedhule[i];
+        Arrays.sort(orderSchedule);
+        orderSchedules = new OrderSchedule[orderSchedule.length];
+        for (int i = 0; i < orderSchedule.length; i++) {
+            orderSchedules[i] = orderSchedule[i];
         }
     }
 
@@ -38,8 +38,8 @@ public class APIService extends MicroService {
     protected void initialize() {
         subscribeBroadcast(TickBroadcast.class, tickIncoming -> {
             this.time = tickIncoming.getCurrentTick();
-            while (time == orderScedhules[currentIndex].getTick() && currentIndex <= orderScedhules.length - 1) {
-                Future<OrderReceipt> futuro = sendEvent(new BookOrderEvent(customer, time, orderScedhules[currentIndex].getBookInventoryInfo().getBookTitle()));
+            while (time == orderSchedules[currentIndex].getTick() && currentIndex <= orderSchedules.length - 1) {
+                Future<OrderReceipt> futuro = sendEvent(new BookOrderEvent(customer, time, orderSchedules[currentIndex].getBookTitle()));
                 OrderReceipt futuroReciept = futuro.get();
                 if (!(futuroReciept instanceof NullReciept)) {
                     sendEvent(new DeliveryEvent(customer.getAddress(), customer.getDistance()));

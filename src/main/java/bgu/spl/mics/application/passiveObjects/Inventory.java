@@ -16,7 +16,7 @@ import java.io.*;
  * You can add ONLY private fields and methods to this class as you see fit.
  */
 public class Inventory implements java.io.Serializable{
-	private HashMap<String, BookInventoryInfo> bookCollection;
+	private HashMap<String, BookInventoryInfo> bookCollection = new HashMap<>();
 	private static class SingleInventory {
 		private static Inventory inventory=new Inventory();
 	}

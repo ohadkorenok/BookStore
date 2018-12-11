@@ -19,7 +19,7 @@ public class ResourcesHolder {
 	private static class SingleResourcesHolder {
 		private static ResourcesHolder resourceHolder = new ResourcesHolder();
 	}
-	private ConcurrentLinkedQueue<DeliveryVehicle> queueOfVehicles;
+	private ConcurrentLinkedQueue<DeliveryVehicle> queueOfVehicles = new ConcurrentLinkedQueue<>();
 	private Semaphore locker;
 	/**
      * Retrieves the single instance of this class.
