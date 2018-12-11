@@ -1,6 +1,11 @@
 package bgu.spl.mics.application.services;
 
+import bgu.spl.mics.Future;
 import bgu.spl.mics.MicroService;
+import bgu.spl.mics.application.Messages.DeliveryEvent;
+import bgu.spl.mics.application.Messages.FindDriverEvent;
+import bgu.spl.mics.application.Messages.ReleaseVehicleEvent;
+import bgu.spl.mics.application.passiveObjects.DeliveryVehicle;
 
 /**
  * Logistic service in charge of delivering books that have been purchased to customers.
@@ -12,16 +17,17 @@ import bgu.spl.mics.MicroService;
  * You MAY change constructor signatures and even add new public constructors.
  */
 public class LogisticsService extends MicroService {
-
-	public LogisticsService() {
-		super("Change_This_Name");
-		// TODO Implement this
+	public LogisticsService(String name) {
+		super(name);
 	}
-
 	@Override
 	protected void initialize() {
-		// TODO Implement this
-		
+		subscribeEvent(DeliveryEvent.class, incomingDelivery->{
+			Future <DeliveryVehicle> futuro = sendEvent(new FindDriverEvent());
+			DeliveryVehicle futuroVehicle = futuro.get();
+			futuroVehicle.deliver(incomingDelivery.getAddress(), incomingDelivery.getDistance());
+			sendEvent(new ReleaseVehicleEvent(futuroVehicle));
+		});
 	}
 
 }

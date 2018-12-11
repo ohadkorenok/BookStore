@@ -1,4 +1,5 @@
 package bgu.spl.mics.application.passiveObjects;
+import java.util.Arrays;
 import java.util.concurrent.*;
 import java.io.*;
 
@@ -36,6 +37,7 @@ public class Inventory implements java.io.Serializable{
 	//@PRE: inventory !=null
 	//@POST: inv initialized
 	public void load (BookInventoryInfo[ ] inventory ) {
+		Arrays.sort(inventory);
 		bookCollection = new BookInventoryInfo[inventory.length];
 		for (int i = 0; i < inventory.length; i++) {
 			bookCollection[i] = inventory[i];
@@ -53,10 +55,23 @@ public class Inventory implements java.io.Serializable{
 	//@PRE: book != null
 	//@POST: inv.get(book).getAmountInInventory()=inv.get(book).getAmountInInventory()-1
 	public OrderResult take (String book) {
-		return null;
+		int i = 0;
+		if (book == null) {
+			return OrderResult.NOT_IN_STOCK;
+		} else {
+			synchronized (bookCollection) {
+				while (i < bookCollection.length && (bookCollection[i].getBookTitle().compareTo(book) < 1)) {
+					if (bookCollection[i].getBookTitle().equals(book) && bookCollection[i].getAmountInInventory() > 0) {
+						bookCollection[i].setAmountInInventory(bookCollection[i].getAmountInInventory() - 1);
+						return OrderResult.SUCCESSFULLY_TAKEN;
+					}
+					i++;
+				}
+				return OrderResult.NOT_IN_STOCK;
+			}
+		}
+
 	}
-	
-	
 	
 	/**
      * Checks if a certain book is available in the inventory.
@@ -67,7 +82,11 @@ public class Inventory implements java.io.Serializable{
 	//@PRE: book != null && inv.get(book).getPrice()>=0
 	//@POST: if(inv.get(book).getAmountInInventory()>0)return value==inv.get(book).getPrice()
 	public int checkAvailabiltyAndGetPrice(String book) {
-		//TODO: Implement this
+		for (int i = 0; i < bookCollection.length; i++) {
+			if(bookCollection[i].getBookTitle() .equals(book)){
+				return bookCollection[i].getPrice();
+			}
+		}
 		return -1;
 	}
 	
@@ -82,6 +101,6 @@ public class Inventory implements java.io.Serializable{
 	//@PRE: inv != null
 	//@POST: data in file == inv.toString() + inv.elements(i).toString()
 	public void printInventoryToFile(String filename){
-		//TODO: Implement this
+
 	}
 }

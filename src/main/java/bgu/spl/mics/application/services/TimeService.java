@@ -43,6 +43,7 @@ public class TimeService extends MicroService{
             TickBroadcast tick = new TickBroadcast (currentTick);
 	        sendBroadcast(tick);
         }
+        terminate();
 	}
 
 }

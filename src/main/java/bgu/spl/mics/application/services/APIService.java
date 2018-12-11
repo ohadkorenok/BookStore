@@ -3,6 +3,7 @@ package bgu.spl.mics.application.services;
 import bgu.spl.mics.Future;
 import bgu.spl.mics.MicroService;
 import bgu.spl.mics.application.Messages.BookOrderEvent;
+import bgu.spl.mics.application.Messages.DeliveryEvent;
 import bgu.spl.mics.application.Messages.TickBroadcast;
 import bgu.spl.mics.application.passiveObjects.*;
 
@@ -24,9 +25,9 @@ public class APIService extends MicroService {
     private int currentIndex = 0;
     private Customer customer;
 
-    public APIService(String name, Customer customer, OrderScedhule[] orderScedhule) {
+    public APIService(String name, Customer customer1, OrderScedhule[] orderScedhule) {
         super(name);
-        customer = customer;
+        customer = customer1;
         Arrays.sort(orderScedhule);
         orderScedhules = new OrderScedhule[orderScedhule.length];
         for (int i = 0; i < orderScedhule.length; i++) {
@@ -38,16 +39,17 @@ public class APIService extends MicroService {
     protected void initialize() {
         subscribeBroadcast(TickBroadcast.class, tickIncoming -> {
             this.time = tickIncoming.getCurrentTick();
-            while(time == orderScedhules[currentIndex].getTick() && currentIndex <= orderScedhules.length-1){
-                Future <OrderReceipt> futuro = sendEvent(new BookOrderEvent(customer, time, orderScedhules[currentIndex].getBookInventoryInfo().getBookTitle()));
+            while (time == orderScedhules[currentIndex].getTick() && currentIndex <= orderScedhules.length - 1) {
+                Future<OrderReceipt> futuro = sendEvent(new BookOrderEvent(customer, time, orderScedhules[currentIndex].getBookInventoryInfo().getBookTitle()));
                 OrderReceipt futuroReciept = futuro.get();
-                if(!(futuroReciept instanceof NullReciept)){
+                if (!(futuroReciept instanceof NullReciept)) {
+                    sendEvent(new DeliveryEvent(customer.getAddress(), customer.getDistance()));
+                    customer.getCustomerReceiptList().add(futuro.get());
                 }
-                //                customer.getCustomerReceiptList().add(futuro.get());
-                currentIndex ++;
+                currentIndex++;
             }
-        });
-    }
+    });
+}
 
     public Customer getCustomer() {
         return customer;
