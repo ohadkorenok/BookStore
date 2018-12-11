@@ -87,5 +87,8 @@ public class Customer {
     public int getCreditNumber() {
         return creditCardNumber;
     }
+    public void setAmount(int pricetoCharge){
+        this.amount=amount-pricetoCharge;
+    }
 
 }

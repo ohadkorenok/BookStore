@@ -4,7 +4,8 @@ package bgu.spl.mics.application.services;
 import bgu.spl.mics.Future;
 import bgu.spl.mics.MicroService;
 import bgu.spl.mics.application.Messages.BookOrderEvent;
-import bgu.spl.mics.application.Messages.CheckAvailabilityandReduceEvent;
+import bgu.spl.mics.application.Messages.CheckBookInfo;
+import bgu.spl.mics.application.Messages.TakeBookEvent;
 import bgu.spl.mics.application.Messages.TickBroadcast;
 import bgu.spl.mics.application.passiveObjects.Inventory;
 import bgu.spl.mics.application.passiveObjects.MoneyRegister;
@@ -39,22 +40,20 @@ public class SellingService extends MicroService {
 		} );
 		subscribeEvent(BookOrderEvent.class, event ->{
 			int proccessTick=this.time;
-			Future<Boolean> f1=sendEvent(new CheckAvailabilityandReduceEvent(event.getName()));
-			if(f1.get()){
-				try {
-					event.getCustomer().getSema().acquire(1);
-					if (event.getCustomer().getAvailableCreditAmount() > 0) {
-						accountant.chargeCreditCard(event.getCustomer(), event.getPrice());
-						OrderReceipt reciept = new OrderReceipt(getName(), event.getCustomer().getId(), event.getName(), event.getPrice(), event.getissuedTick(), proccessTick, time);
-						accountant.file(reciept);
-						complete(event, reciept);
+			Future<Integer> f1=sendEvent(new CheckBookInfo(event.getName()));
+			if(f1.get()>0) {
+				Future<Boolean> f2 = sendEvent(new TakeBookEvent(event.getName()));
+				synchronized (event.getCustomer()) {
+					if (f2.get()) {
+						if (event.getCustomer().getAvailableCreditAmount() > 0) {
+							accountant.chargeCreditCard(event.getCustomer(), f1.get());
+							OrderReceipt reciept = new OrderReceipt(getName(), event.getCustomer().getId(), event.getName(), f1.get(), event.getissuedTick(), proccessTick, time);
+							accountant.file(reciept);
+							complete(event, reciept);
+						} else
+							complete(event, null); //Couldn't Charge CreditCard
 					}
-					else
-						complete(event, null); //Couldn't Charge CreditCard
 				}
-
-				catch(InterruptedException e){}
-				finally{event.getCustomer().getSema().release(1);}
 			}
 			else
 				complete(event,null); //Book not available

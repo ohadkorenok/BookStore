@@ -7,7 +7,7 @@ public class BookOrderEvent implements Event {
     private Customer c1;
     private int tick;
     private String name;
-    public BookOrderEvent(Customer c1,int startOfCareTick,int price,String name){this.c1=c1;this.tick=startOfCareTick;this.name=name;}
+    public BookOrderEvent(Customer c1,int startOfCareTick,String name){this.c1=c1;this.tick=startOfCareTick;this.name=name;}
 
     public Customer getCustomer(){return c1;}
     public int getissuedTick(){return tick;}

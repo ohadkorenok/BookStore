@@ -3,6 +3,7 @@ package bgu.spl.mics.application.passiveObjects;
 
 import java.util.LinkedList;
 import java.util.List;
+import java.util.concurrent.atomic.AtomicInteger;
 
 /**
  * Passive object representing the store finance management. 
@@ -17,10 +18,13 @@ public class MoneyRegister {
 	private static class SingleMoneyRegister {
 		private static MoneyRegister accountant=new MoneyRegister();
 	}
-	volatile int totalEarnings=0;
-	List<OrderReceipt> recList=new LinkedList<>();
+	private AtomicInteger totalEarnings;
+	List<OrderReceipt> recList;
 
-	
+	private MoneyRegister(){
+		totalEarnings=new AtomicInteger(0);
+		recList=new LinkedList<>();
+	}
 	/**
      * Retrieves the single instance of this class.
      */
@@ -41,8 +45,7 @@ public class MoneyRegister {
      * Retrieves the current total earnings of the store.  
      */
 	public int getTotalEarnings() {
-		//TODO: Implement this
-		return 0;
+		return totalEarnings.get();
 	}
 	
 	/**
@@ -51,8 +54,8 @@ public class MoneyRegister {
      * @param amount 	amount to charge
      */
 	public void chargeCreditCard(Customer c, int amount) {
-		// Synchronizing Customer.
-		// TODO Implement this
+		c.setAmount(amount);
+		totalEarnings.getAndAdd(amount);
 	}
 	
 	/**
