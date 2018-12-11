@@ -1,5 +1,7 @@
 package bgu.spl.mics;
 
+import bgu.spl.mics.application.Messages.TerminateBroadcast;
+
 import java.util.HashMap;
 
 /**
@@ -158,6 +160,9 @@ public abstract class MicroService implements Runnable {
     public final void run() {
         // The microservice registers to the message bus.
         magicBus.register(this);
+        subscribeBroadcast(TerminateBroadcast.class, finallCall->{
+            this.terminate();
+        });
         initialize();
         while (!terminated) {
             try{

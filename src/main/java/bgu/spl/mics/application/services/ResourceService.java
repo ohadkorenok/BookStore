@@ -2,9 +2,8 @@ package bgu.spl.mics.application.services;
 
 import bgu.spl.mics.Future;
 import bgu.spl.mics.MicroService;
-import bgu.spl.mics.application.Messages.findDriverEvent;
-import bgu.spl.mics.application.Messages.releaseVehicleEvent;
-import bgu.spl.mics.application.passiveObjects.DeliveryVehicle;
+import bgu.spl.mics.application.Messages.FindDriverEvent;
+import bgu.spl.mics.application.Messages.ReleaseVehicleEvent;
 import bgu.spl.mics.application.passiveObjects.ResourcesHolder;
 
 /**
@@ -26,11 +25,11 @@ public class ResourceService extends MicroService{
 
 	@Override
 	protected void initialize() {
-		subscribeEvent(findDriverEvent.class, event->{
+		subscribeEvent(FindDriverEvent.class, event->{
 			Future f1=rH.acquireVehicle();
 			complete(event,f1.get());
 		});
-		subscribeEvent(releaseVehicleEvent.class, event->{
+		subscribeEvent(ReleaseVehicleEvent.class, event->{
 			rH.releaseVehicle(event.getVehicle());
 		});
 	}
