@@ -3,6 +3,9 @@ package bgu.spl.mics.application.passiveObjects;
 import bgu.spl.mics.Future;
 import com.sun.xml.internal.bind.v2.runtime.unmarshaller.XsiNilLoader;
 
+import java.util.concurrent.ConcurrentLinkedQueue;
+import java.util.concurrent.Semaphore;
+
 /**
  * Passive object representing the resource manager.
  * You must not alter any of the given public methods of this class.
@@ -16,8 +19,8 @@ public class ResourcesHolder {
 	private static class SingleResourcesHolder {
 		private static ResourcesHolder resourceHolder = new ResourcesHolder();
 	}
-	private DeliveryVehicle[] deliveryVehicles;
-	
+	private ConcurrentLinkedQueue<DeliveryVehicle> queueOfVehicles;
+	private Semaphore locker;
 	/**
      * Retrieves the single instance of this class.
      */
@@ -33,8 +36,10 @@ public class ResourcesHolder {
      * 			{@link DeliveryVehicle} when completed.   
      */
 	public Future<DeliveryVehicle> acquireVehicle() {
-		//TODO: Implement this
-		return null;
+		Future<DeliveryVehicle> futuro=new Future();
+		locker.tryAcquire(1);
+
+		return futuro;
 	}
 	
 	/**
@@ -53,10 +58,10 @@ public class ResourcesHolder {
      * @param vehicles	Array of {@link DeliveryVehicle} instances to store.
      */
 	public void load(DeliveryVehicle[] vehicles) {
-		deliveryVehicles = new DeliveryVehicle[vehicles.length];
-		for (int i = 0; i < deliveryVehicles.length; i++) {
-			deliveryVehicles[i] = vehicles[i];
+		for (int i = 0; i < vehicles.length; i++) {
+			queueOfVehicles.add(vehicles[i]);
 		}
+		locker=new Semaphore(vehicles.length);
 	}
 
 }
