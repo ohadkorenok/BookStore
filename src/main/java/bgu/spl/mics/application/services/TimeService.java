@@ -45,13 +45,11 @@ public class TimeService extends MicroService{
                     }
                     else{
                         sendBroadcast(new TerminateBroadcast());
-                        terminate();
                     }
                 }
             }, 0, speed);
         }
 	}
-
 
 //        while(currentTick < duration) {
 //            timer.schedule(new TimerTask() {

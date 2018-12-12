@@ -27,4 +27,9 @@ public class SpecificBlockingQueue <T> extends LinkedBlockingQueue <T> {
     public Class<? extends MicroService> getClassOfQueue() {
         return classOfQueue;
     }
+
+    @Override
+    public String toString() {
+        return name;
+    }
 }
