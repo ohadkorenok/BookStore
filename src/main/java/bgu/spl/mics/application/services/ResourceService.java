@@ -27,7 +27,7 @@ public class ResourceService extends MicroService{
 	protected void initialize() {
 		subscribeEvent(FindDriverEvent.class, event->{
 			Future f1=rH.acquireVehicle();
-			complete(event,f1.get());
+			complete(event,f1);
 		});
 		subscribeEvent(ReleaseVehicleEvent.class, event->{
 			rH.releaseVehicle(event.getVehicle());
