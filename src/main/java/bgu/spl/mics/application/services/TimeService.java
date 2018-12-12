@@ -45,7 +45,6 @@ public class TimeService extends MicroService{
                     }
                     else{
                         sendBroadcast(new TerminateBroadcast());
-                        terminate();
                     }
                 }
             }, 0, speed);

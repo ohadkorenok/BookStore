@@ -38,7 +38,7 @@ public class APIService extends MicroService {
     protected void initialize() {
         subscribeBroadcast(TickBroadcast.class, tickIncoming -> {
             this.time = tickIncoming.getCurrentTick();
-            while (time == orderSchedules[currentIndex].getTick() && currentIndex <= orderSchedules.length - 1) {
+            while (currentIndex <= orderSchedules.length - 1  && time == orderSchedules[currentIndex].getTick() ) {
                 Future<OrderReceipt> futuro = sendEvent(new BookOrderEvent(customer, time, orderSchedules[currentIndex].getBookTitle()));
                 OrderReceipt futuroReciept = futuro.get();
                 if (!(futuroReciept instanceof NullReciept)) {
