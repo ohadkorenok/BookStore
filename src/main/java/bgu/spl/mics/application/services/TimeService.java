@@ -51,7 +51,6 @@ public class TimeService extends MicroService{
         }
 	}
 
-
 //        while(currentTick < duration) {
 //            timer.schedule(new TimerTask() {
 //                @Override

@@ -146,6 +146,8 @@ public class BookStoreRunner {
         }
 
         /***********   Initialize TimeService   ***********/
+
+
         Runnable runnableTime = new TimeService((int)(double) timeService.get("speed"), (int) (double)timeService.get("duration"));
         startTask(runnableTime);
 
