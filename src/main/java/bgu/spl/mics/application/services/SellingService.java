@@ -41,19 +41,23 @@ public class SellingService extends MicroService {
 			Future<Integer> f1=sendEvent(new CheckBookInfo(event.getName()));
 			if(f1.get()>0) {
 				synchronized (event.getCustomer()) {
-					Future<Boolean> f2 = sendEvent(new TakeBookEvent(event.getName()));
-					if (f2.get()) {
 						if (event.getCustomer().getAvailableCreditAmount() > 0) {
-							accountant.chargeCreditCard(event.getCustomer(), f1.get());
-							OrderReceipt reciept = new OrderReceipt(getName(), event.getCustomer().getId(), event.getName(), f1.get(), event.getissuedTick(), proccessTick, time);
-							accountant.file(reciept);
-							complete(event, reciept);
+							Future<Boolean> f2 = sendEvent(new TakeBookEvent(event.getName()));
+							if (f2.get()) {
+								accountant.chargeCreditCard(event.getCustomer(), f1.get());
+								OrderReceipt reciept = new OrderReceipt(getName(), event.getCustomer().getId(), event.getName(), f1.get(), event.getissuedTick(), proccessTick, time);
+								accountant.file(reciept);
+								complete(event, reciept);
+							}
+							else {
+								//Physically Couldn't take book.
+								complete(event, new NullReciept("", 0, "", 0, 0, 0, 0));
+							}
 						} else
 							//Couldn't Charge CreditCard
 							complete(event,new NullReciept("",0,"",0,0,0,0));
 					}
 				}
-			}
 			else
 				//Book not available
 				complete(event,new NullReciept("",0,"",0,0,0,0));

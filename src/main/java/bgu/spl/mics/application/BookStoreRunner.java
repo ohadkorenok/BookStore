@@ -6,8 +6,7 @@ import com.google.gson.Gson;
 import com.google.gson.internal.LinkedTreeMap;
 import javafx.util.Pair;
 
-import java.io.FileNotFoundException;
-import java.io.FileReader;
+import java.io.*;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
@@ -28,19 +27,16 @@ public class BookStoreRunner {
             Path path = Paths.get(args[0]);
             String absPath = path.toAbsolutePath().toString();
             FileReader fileReader = new FileReader(absPath);
-
             HashMap settings = gson.fromJson(fileReader, HashMap.class);
             Inventory inventory = initializeInventoryAndLoadBooks((ArrayList) settings.getOrDefault("initialInventory", null));
             ResourcesHolder resourcesHolder = initializeResourceHolder((ArrayList) settings.getOrDefault("initialResources", null));
             initializeServicesAndCustomers((LinkedTreeMap) settings.getOrDefault("services", null));
             System.out.println("WELCOME TO NITZAN AND OHAD BOOKSTORE. ENJOY YOUR STAY");
 
-
         } catch (FileNotFoundException e) {
             System.out.println("file not found!");
         }
     }
-
     private static Inventory initializeInventoryAndLoadBooks(ArrayList<LinkedTreeMap> inventorySettings) {
         Inventory inventory = null;
         if (inventorySettings == null) {
