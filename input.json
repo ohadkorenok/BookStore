@@ -5,6 +5,7 @@
   ],
   "initialResources":[
     {"vehicles":[
+      {"license":123483, "speed": 2},
       {"license":123483, "speed": 2}
     ]
     }
