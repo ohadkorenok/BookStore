@@ -41,7 +41,7 @@ public class SellingService extends MicroService {
 			Future<Integer> f1=sendEvent(new CheckBookInfo(event.getName()));
 			if(f1.get()>0) {
 				synchronized (event.getCustomer()) {
-						if (event.getCustomer().getAvailableCreditAmount() - f1.get() > 0) {
+						if (event.getCustomer().getAvailableCreditAmount() - f1.get() >= 0) {
 							Future<Boolean> f2 = sendEvent(new TakeBookEvent(event.getName()));
 							if (f2.get()) {
 								accountant.chargeCreditCard(event.getCustomer(), f1.get());
