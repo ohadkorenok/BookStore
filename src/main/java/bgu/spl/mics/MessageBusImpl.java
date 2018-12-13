@@ -31,11 +31,11 @@ public class MessageBusImpl implements MessageBus {
             messageList.add(type);
             microServiceInstancetoMessageClass.put(m, messageList);
         } else {
-            LinkedList<Class<? extends Message>> messageList = microServiceInstancetoMessageClass.get(m);
-            synchronized (messageList) {
+            synchronized (microServiceInstancetoMessageClass.get(m)) {
+                LinkedList<Class<? extends Message>> messageList = microServiceInstancetoMessageClass.get(m);
                 messageList.add(type);
+                microServiceInstancetoMessageClass.put(m, messageList);
             }
-            microServiceInstancetoMessageClass.put(m, messageList);
         }
     }
 
@@ -49,8 +49,7 @@ public class MessageBusImpl implements MessageBus {
     @Override
     public <T> void subscribeEvent(Class<? extends Event<T>> type, MicroService m) {
         putIntoMsInstanceToMessageClassHashMap(type, m);
-        if(!eventClassToRoundRobinQueues.containsKey(type))
-            eventClassToRoundRobinQueues.put(type, new RoundRobinLinkedListSemaphore<>());
+        eventClassToRoundRobinQueues.putIfAbsent(type, new RoundRobinLinkedListSemaphore<>());
         fetchNPushQueue(m ,type);
 
     }
@@ -58,8 +57,7 @@ public class MessageBusImpl implements MessageBus {
     @Override
     public void subscribeBroadcast(Class<? extends Broadcast> type, MicroService m) {
         putIntoMsInstanceToMessageClassHashMap(type, m);
-        if(!broadcastToRoundRobinQueues.containsKey(type))
-            broadcastToRoundRobinQueues.put(type,new RoundRobinLinkedListSemaphore<>());
+        broadcastToRoundRobinQueues.putIfAbsent(type,new RoundRobinLinkedListSemaphore<>());
         fetchNPushQueue(m,type);
     }
 
@@ -78,17 +76,17 @@ public class MessageBusImpl implements MessageBus {
 
     @Override
     public void sendBroadcast(Broadcast b) {
-        RoundRobinLinkedListSemaphore<SpecificBlockingQueue<Message>> roundRobinBlockingQueueOfBroadcasts = broadcastToRoundRobinQueues.getOrDefault(b.getClass(), null);
-        if (roundRobinBlockingQueueOfBroadcasts != null) {
-            try {
-                roundRobinBlockingQueueOfBroadcasts.getSema().acquire(1);
-                for (SpecificBlockingQueue<Message> it: roundRobinBlockingQueueOfBroadcasts) {
-                    it.put(b);
+        if (broadcastToRoundRobinQueues.get(b.getClass()) != null) {
+            synchronized (broadcastToRoundRobinQueues.get(b.getClass())) {
+                RoundRobinLinkedListSemaphore<SpecificBlockingQueue<Message>> roundRobinBlockingQueueOfBroadcasts = broadcastToRoundRobinQueues.get(b.getClass());
+                if (roundRobinBlockingQueueOfBroadcasts != null) {
+                    for (SpecificBlockingQueue<Message> it : roundRobinBlockingQueueOfBroadcasts) {
+                        try {
+                            it.put(b);
+                        }
+                        catch (InterruptedException e ){System.out.println("Hi I was interupted");}
+                    }
                 }
-            } catch (InterruptedException ex) {
-                System.out.println("SendBroadcast Was interrupted! ");
-            } finally {
-                roundRobinBlockingQueueOfBroadcasts.getSema().release(1);
             }
         }
     }
@@ -132,7 +130,6 @@ public class MessageBusImpl implements MessageBus {
      * @param messageClass type of Event
      */
     private void fetchNPushQueue(MicroService m, Class<? extends Message> messageClass) {
-        RoundRobinLinkedListSemaphore queueList;
         if(Broadcast.class.isAssignableFrom(messageClass)) {
                 synchronized (broadcastToRoundRobinQueues.get(messageClass)) {
                     SpecificBlockingQueue<Message> queuetoPush = microServiceToQueue.get(m);
@@ -141,7 +138,6 @@ public class MessageBusImpl implements MessageBus {
                     }
                     broadcastToRoundRobinQueues.get(messageClass).add(queuetoPush);
                     if (!messageClass.toString().equals("class bgu.spl.mics.application.Messages.TickBroadcast")) {
-                        System.out.println("Hi I pushed " + Thread.currentThread().getName());
                         System.out.println(broadcastToRoundRobinQueues.get(messageClass).toString());
                     }
                 }
@@ -156,12 +152,10 @@ public class MessageBusImpl implements MessageBus {
 
     @Override
     public void unregister(MicroService m) {
-        System.out.println("Hi I am gonna remove my messages "+Thread.currentThread().getName());
             //*******************//
             //clear data in queue.
 
         synchronized (microServiceToQueue.get(m)) {
-            System.out.println("Locking my own queue: "+Thread.currentThread().getName());
             SpecificBlockingQueue<Message> qtoRemove = microServiceToQueue.get(m);
             for (Message i : qtoRemove) {
                 if (i instanceof Event) {
@@ -175,14 +169,9 @@ public class MessageBusImpl implements MessageBus {
             //*******************//
         //the list inside the for-loop is applied only to one-thread or MicroService, therefore it is not shared-resource.
         for (Class<? extends Message> messageClass : microServiceInstancetoMessageClass.getOrDefault(m, new LinkedList<Class<? extends Message>>())) {
-            if(Event.class.isAssignableFrom(messageClass)) {
                 seekNdestroy(m,messageClass);
-            }
-            else if(Broadcast.class.isAssignableFrom(messageClass)){
-                seekNdestroy(m,messageClass);
-            }
-            microServiceInstancetoMessageClass.remove(m);
         }
+        microServiceInstancetoMessageClass.remove(m);
         System.out.println("Finished Unregister " +Thread.currentThread().getName());
     }
     private void seekNdestroy(MicroService m,Class<? extends Message> messageClass){
@@ -190,12 +179,7 @@ public class MessageBusImpl implements MessageBus {
             synchronized (eventClassToRoundRobinQueues.get(messageClass)){
                 SpecificBlockingQueue<Message> toRemove=null;
                 RoundRobinLinkedListSemaphore<SpecificBlockingQueue<Message>> queueList=eventClassToRoundRobinQueues.get(messageClass);
-                for (SpecificBlockingQueue<Message> i : queueList) {
-                    if (i.getName().equals(m.getName())) {
-                        toRemove=i;
-                        break;
-                    }
-                }
+                toRemove=searchnGet(m,queueList);
                 if(toRemove!=null)
                     eventClassToRoundRobinQueues.get(messageClass).remove(toRemove);
             }
@@ -204,12 +188,7 @@ public class MessageBusImpl implements MessageBus {
             synchronized (broadcastToRoundRobinQueues.get(messageClass)){
                 SpecificBlockingQueue<Message> toRemove=null;
                 RoundRobinLinkedListSemaphore<SpecificBlockingQueue<Message>> queueList=broadcastToRoundRobinQueues.get(messageClass);
-                for (SpecificBlockingQueue<Message> i : queueList) {
-                    if (i.getName().equals(m.getName())) {
-                        toRemove=i;
-                        break;
-                    }
-                }
+                toRemove=searchnGet(m,queueList);
                 if(toRemove!=null)
                     broadcastToRoundRobinQueues.get(messageClass).remove(toRemove);
             }
@@ -239,18 +218,12 @@ public class MessageBusImpl implements MessageBus {
      */
     private SpecificBlockingQueue<Message> searchnGet(MicroService m, RoundRobinLinkedListSemaphore<SpecificBlockingQueue<Message>> queueList) {
         SpecificBlockingQueue<Message> toRet = null;
-        try {
-            queueList.getSema().acquire(1);
             for (SpecificBlockingQueue<Message> i : queueList) {
                 if (i.getName().equals(m.getName())) {
                     toRet = i;
                     break;
                 }
             }
-        } catch (InterruptedException ex) {
-        } finally {
-            queueList.getSema().release(1);
-        }
         return toRet;
     }
 
