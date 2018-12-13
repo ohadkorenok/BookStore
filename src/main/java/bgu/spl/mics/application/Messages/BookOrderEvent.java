@@ -8,8 +8,8 @@ public class BookOrderEvent implements Event {
     private int tick;
     private String name;
 
-    public BookOrderEvent(Customer c1, int startOfCareTick, String name1) {
-        this.c1 = c1;
+    public BookOrderEvent(Customer c, int startOfCareTick, String name1) {
+        this.c1 = c;
         this.tick = startOfCareTick;
         this.name = name1;
     }

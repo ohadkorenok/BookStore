@@ -15,9 +15,9 @@ public class DeliveryVehicle {
     /**
      * Constructor.
      */
-    public DeliveryVehicle(int license, int speed) {
-        license = license;
-        speed = speed;
+    public DeliveryVehicle(int license1, int speed1) {
+        license = license1;
+        speed = speed1;
     }
 
     /**
@@ -48,7 +48,9 @@ public class DeliveryVehicle {
     public void deliver(String address, int distance) {
 
         int numberOfTicksToReachDestination = distance * speed;
+        System.out.println("THE SPEED IS : "+speed);
         try {
+            System.out.println(numberOfTicksToReachDestination + "   milliseconds  (deliver)");
             Thread.sleep(numberOfTicksToReachDestination);
         } catch (InterruptedException e) {
             System.out.println("Delivery was interrupted!!!! ");

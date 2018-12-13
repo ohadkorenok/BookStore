@@ -26,6 +26,8 @@ public class LogisticsService extends MicroService {
 			System.out.println("Delivery event arrived into  "+this.getName());
 			Future <Future<DeliveryVehicle>> futuro = sendEvent(new FindDriverEvent());
 			DeliveryVehicle futuroVehicle = futuro.get().get();
+			System.out.println("GOING TO DELIVERY OF : "+this.getName());
+			System.out.println("Address of delivery : "+incomingDelivery.getAddress() + " Distance:    "+incomingDelivery.getDistance());
 			futuroVehicle.deliver(incomingDelivery.getAddress(), incomingDelivery.getDistance());
 			sendEvent(new ReleaseVehicleEvent(futuroVehicle));
 		});
