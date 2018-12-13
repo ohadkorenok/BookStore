@@ -109,37 +109,37 @@ public class BookStoreRunner {
 
 
         /***********   Initialize SellingService   ***********/
-        for (int i = 0; i < 1; i++) {
+//        for (int i = 0; i < 1; i++) {
 
-//        for (int i = 0; i < sellingServiceWorkers; i++) {
+        for (int i = 0; i < sellingServiceWorkers; i++) {
             Runnable runnableSeller = new SellingService("SellerService" + i);
             startTask(runnableSeller);
         }
         /***********   Initialize InventoryService   ***********/
-//        for (int i = 0; i < inventoryServiceWorkers; i++) {
-        for (int i = 0; i < 1; i++) {
+        for (int i = 0; i < inventoryServiceWorkers; i++) {
+//        for (int i = 0; i < 1; i++) {
 
             Runnable runnableInventory = new InventoryService("InventoryService "+i);
             startTask(runnableInventory);
         }
         /***********   Initialize LogisticsService   ***********/
-//        for (int i = 0; i < logisticsServiceWorkers; i++) {
+        for (int i = 0; i < logisticsServiceWorkers; i++) {
 
-        for (int i = 0; i < 1; i++) {
+//        for (int i = 0; i < 1; i++) {
             Runnable runnableLogistics = new LogisticsService("LogisticsSerivce "+i);
             startTask(runnableLogistics);
         }
         /***********   Initialize ResourceService   ***********/
-//        for (int i = 0; i < resourceServiceWorker; i++) {
-        for (int i = 0; i < 1; i++) {
+        for (int i = 0; i < resourceServiceWorker; i++) {
+//        for (int i = 0; i < 1; i++) {
 
             Runnable runnableResource = new ResourceService("ResourceService "+i);
             startTask(runnableResource);
         }
         /***********   Initialize APIService   ***********/
-//        for (int i = 0; i < customers.size(); i++) {
+        for (int i = 0; i < customers.size(); i++) {
 
-        for (int i = 0; i < 1; i++) {
+//        for (int i = 0; i < 1; i++) {
             Pair <Customer, OrderSchedule []> pair = buildCustomerFromConfig((LinkedTreeMap) customers.get(i));
             Runnable runnableSession = new APIService("APISerivce "+i, pair.getKey(), pair.getValue());
             startTask(runnableSession);
