@@ -135,11 +135,11 @@ public class MessageBusImpl implements MessageBus {
                 synchronized (broadcastToRoundRobinQueues.get(messageClass)) {
                     SpecificBlockingQueue<Message> queuetoPush = microServiceToQueue.get(m);
                     if (!messageClass.toString().equals("class bgu.spl.mics.application.Messages.TickBroadcast")) {
-                        System.out.println("Hi I am fetching and gonna push " + Thread.currentThread().getName());
+//                        System.out.println("Hi I am fetching and gonna push " + Thread.currentThread().getName());
                     }
                     broadcastToRoundRobinQueues.get(messageClass).add(queuetoPush);
                     if (!messageClass.toString().equals("class bgu.spl.mics.application.Messages.TickBroadcast")) {
-                        System.out.println(broadcastToRoundRobinQueues.get(messageClass).toString());
+//                        System.out.println(broadcastToRoundRobinQueues.get(messageClass).toString());
                     }
                 }
         }

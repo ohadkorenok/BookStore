@@ -36,6 +36,7 @@ public class SellingService extends MicroService {
 			this.time=tickIncoming.getCurrentTick();
 		} );
 		subscribeEvent(BookOrderEvent.class, event ->{
+			System.out.println("Book Order Event arrived to "+this.getName());
 			int proccessTick=this.time;
 			Future<Integer> f1=sendEvent(new CheckBookInfo(event.getName()));
 			if(f1.get()>0) {
