@@ -26,10 +26,12 @@ public class ResourceService extends MicroService{
 	@Override
 	protected void initialize() {
 		subscribeEvent(FindDriverEvent.class, event->{
+			System.out.println("Find driver event got into "+this.getName());
 			Future f1=rH.acquireVehicle();
 			complete(event,f1);
 		});
 		subscribeEvent(ReleaseVehicleEvent.class, event->{
+			System.out.println("Release driver event got into "+this.getName());
 			rH.releaseVehicle(event.getVehicle());
 		});
 	}
