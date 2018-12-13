@@ -19,6 +19,9 @@ import java.util.HashMap;
  * In the end, you should output serialized objects.
  */
 public class BookStoreRunner {
+
+    private static HashMap <Integer,Customer> customersById = new HashMap<>();
+
     public static void main(String[] args) {
         Gson gson = new Gson();
         try {
@@ -31,6 +34,7 @@ public class BookStoreRunner {
             ResourcesHolder resourcesHolder = initializeResourceHolder((ArrayList) settings.getOrDefault("initialResources", null));
             initializeServicesAndCustomers((LinkedTreeMap) settings.getOrDefault("services", null));
             System.out.println("WELCOME TO NITZAN AND OHAD BOOKSTORE. ENJOY YOUR STAY");
+
 
         } catch (FileNotFoundException e) {
             System.out.println("file not found!");
@@ -90,6 +94,7 @@ public class BookStoreRunner {
             orderSchedules[i] = bookInfo;
         }
         Customer customer = new Customer(id, name, address, distance, creditCardAmount, creditCardNumber);
+        customersById.put(customer.getId(), customer);
         return new Pair<>(customer, orderSchedules);
     }
 
@@ -147,9 +152,7 @@ public class BookStoreRunner {
 
         /***********   Initialize TimeService   ***********/
 
-
         Runnable runnableTime = new TimeService((int)(double) timeService.get("speed"), (int) (double)timeService.get("duration"));
         startTask(runnableTime);
-
     }
 }

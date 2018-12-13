@@ -63,9 +63,15 @@ public class ResourcesHolder {
 		assignWaitersToVehicle();
 	}
 	private void assignWaitersToVehicle(){
-		if(!futuretoResolve.isEmpty()) {
-			if(locker.tryAcquire())
-				futuretoResolve.poll().resolve(queueOfVehicles.poll());
+		synchronized (futuretoResolve){
+			if(!futuretoResolve.isEmpty()) {
+				if (locker.tryAcquire()) {
+					DeliveryVehicle tustus = queueOfVehicles.poll();
+					if (tustus != null) {
+						futuretoResolve.poll().resolve(tustus);
+					}
+				}
+			}
 		}
 	}
 	
