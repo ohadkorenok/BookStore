@@ -26,9 +26,10 @@ public class BookStoreRunner {
     public static void main(String[] args) {
         Gson gson = new Gson();
         try {
-            Path path = Paths.get(args[0]);
-            String absPath = path.toAbsolutePath().toString();
-            FileReader fileReader = new FileReader(absPath);
+//            Path path = Paths.get(args[0]);
+//            String absPath = path.toAbsolutePath().toString();
+//            FileReader fileReader = new FileReader(absPath);
+            FileReader fileReader = new FileReader(args[0]);
             HashMap settings = gson.fromJson(fileReader, HashMap.class);
             Inventory inventory = initializeInventoryAndLoadBooks((ArrayList) settings.getOrDefault("initialInventory", null));
             ResourcesHolder resourcesHolder = initializeResourceHolder((ArrayList) settings.getOrDefault("initialResources", null));
