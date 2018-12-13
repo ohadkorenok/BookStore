@@ -4,6 +4,7 @@ import bgu.spl.mics.Future;
 import bgu.spl.mics.MicroService;
 import bgu.spl.mics.application.Messages.BookOrderEvent;
 import bgu.spl.mics.application.Messages.DeliveryEvent;
+import bgu.spl.mics.application.Messages.TerminateBroadcast;
 import bgu.spl.mics.application.Messages.TickBroadcast;
 import bgu.spl.mics.application.passiveObjects.*;
 
@@ -36,6 +37,9 @@ public class APIService extends MicroService {
 
     @Override
     protected void initialize() {
+        subscribeBroadcast(TerminateBroadcast.class, finallCall->{
+            this.terminate();
+        });
         subscribeBroadcast(TickBroadcast.class, tickIncoming -> {
             this.time = tickIncoming.getCurrentTick();
             while (currentIndex <= orderSchedules.length - 1  && time == orderSchedules[currentIndex].getTick() ) {

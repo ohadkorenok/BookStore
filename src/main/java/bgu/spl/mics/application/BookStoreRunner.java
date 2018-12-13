@@ -11,6 +11,7 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.LinkedList;
 
 /**
  * This is the Main class of the application. You should parse the input file,
@@ -19,7 +20,8 @@ import java.util.HashMap;
  */
 public class BookStoreRunner {
 
-    private static HashMap <Integer,Customer> customersById = new HashMap<>();
+    private static HashMap<Integer, Customer> customersById = new HashMap<>();
+    private static LinkedList<Thread> Threads = new LinkedList<>();
 
     public static void main(String[] args) {
         Gson gson = new Gson();
@@ -32,11 +34,21 @@ public class BookStoreRunner {
             ResourcesHolder resourcesHolder = initializeResourceHolder((ArrayList) settings.getOrDefault("initialResources", null));
             initializeServicesAndCustomers((LinkedTreeMap) settings.getOrDefault("services", null));
             System.out.println("WELCOME TO NITZAN AND OHAD BOOKSTORE. ENJOY YOUR STAY");
+            for (Thread thread :
+                    Threads) {
+                try {
+                    thread.join();
+                } catch (InterruptedException e) {
+                    System.out.println("The thread was interrupted. ");
+                }
+            }
+            writeAllFiles(args[1], args[2], args[3], args[4]);
 
         } catch (FileNotFoundException e) {
             System.out.println("file not found!");
         }
     }
+
     private static Inventory initializeInventoryAndLoadBooks(ArrayList<LinkedTreeMap> inventorySettings) {
         Inventory inventory = null;
         if (inventorySettings == null) {
@@ -82,11 +94,11 @@ public class BookStoreRunner {
         int creditCardNumber = (int) (double) creditCard.get("number");
         int creditCardAmount = (int) (double) creditCard.get("amount");
 
-        ArrayList orderSchedule = (ArrayList)customerFromConfig.get("orderSchedule");
-        OrderSchedule [] orderSchedules = new OrderSchedule[orderSchedule.size()];
+        ArrayList orderSchedule = (ArrayList) customerFromConfig.get("orderSchedule");
+        OrderSchedule[] orderSchedules = new OrderSchedule[orderSchedule.size()];
         for (int i = 0; i < orderSchedule.size(); i++) {
-            LinkedTreeMap bookOrder = (LinkedTreeMap)orderSchedule.get(i);
-            OrderSchedule bookInfo = new OrderSchedule((String)bookOrder.get("bookTitle"),(int)(double)bookOrder.get("tick"));
+            LinkedTreeMap bookOrder = (LinkedTreeMap) orderSchedule.get(i);
+            OrderSchedule bookInfo = new OrderSchedule((String) bookOrder.get("bookTitle"), (int) (double) bookOrder.get("tick"));
             orderSchedules[i] = bookInfo;
         }
         Customer customer = new Customer(id, name, address, distance, creditCardAmount, creditCardNumber);
@@ -94,9 +106,10 @@ public class BookStoreRunner {
         return new Pair<>(customer, orderSchedules);
     }
 
-    private static void startTask(Runnable task) {
+    private static Thread startTask(Runnable task) {
         Thread n1 = new Thread(task);
         n1.start();
+        return n1;
     }
 
     private static void initializeServicesAndCustomers(LinkedTreeMap servicesSettings) {
@@ -114,41 +127,78 @@ public class BookStoreRunner {
 
         for (int i = 0; i < sellingServiceWorkers; i++) {
             Runnable runnableSeller = new SellingService("SellerService" + i);
-            startTask(runnableSeller);
+
+            Threads.add(startTask(runnableSeller));
         }
         /***********   Initialize InventoryService   ***********/
         for (int i = 0; i < inventoryServiceWorkers; i++) {
 //        for (int i = 0; i < 1; i++) {
 
-            Runnable runnableInventory = new InventoryService("InventoryService "+i);
-            startTask(runnableInventory);
+            Runnable runnableInventory = new InventoryService("InventoryService " + i);
+            Threads.add(startTask(runnableInventory));
         }
         /***********   Initialize LogisticsService   ***********/
         for (int i = 0; i < logisticsServiceWorkers; i++) {
 
 //        for (int i = 0; i < 1; i++) {
-            Runnable runnableLogistics = new LogisticsService("LogisticsSerivce "+i);
-            startTask(runnableLogistics);
+            Runnable runnableLogistics = new LogisticsService("LogisticsSerivce " + i);
+            Threads.add(startTask(runnableLogistics));
         }
         /***********   Initialize ResourceService   ***********/
         for (int i = 0; i < resourceServiceWorker; i++) {
 //        for (int i = 0; i < 1; i++) {
 
-            Runnable runnableResource = new ResourceService("ResourceService "+i);
-            startTask(runnableResource);
+            Runnable runnableResource = new ResourceService("ResourceService " + i);
+            Threads.add(startTask(runnableResource));
         }
         /***********   Initialize APIService   ***********/
         for (int i = 0; i < customers.size(); i++) {
 
 //        for (int i = 0; i < 1; i++) {
-            Pair <Customer, OrderSchedule []> pair = buildCustomerFromConfig((LinkedTreeMap) customers.get(i));
-            Runnable runnableSession = new APIService("APISerivce "+i, pair.getKey(), pair.getValue());
-            startTask(runnableSession);
+            Pair<Customer, OrderSchedule[]> pair = buildCustomerFromConfig((LinkedTreeMap) customers.get(i));
+            Runnable runnableSession = new APIService("APISerivce " + i, pair.getKey(), pair.getValue());
+            Threads.add(startTask(runnableSession));
         }
 
         /***********   Initialize TimeService   ***********/
 
-        Runnable runnableTime = new TimeService((int)(double) timeService.get("speed"), (int) (double)timeService.get("duration"));
-        startTask(runnableTime);
+        Runnable runnableTime = new TimeService((int) (double) timeService.get("speed"), (int) (double) timeService.get("duration"));
+        Threads.add(startTask(runnableTime));
+    }
+
+    private static void writeAllFiles(String customersFileName, String inventoryFileName, String recieptsFileName, String moneyRegisterFileName) {
+
+        /* custoemrs!!!! */
+        writeObjectToFileName(customersFileName, customersById);
+
+
+        /* Receipts */
+        MoneyRegister moneyRegister = MoneyRegister.getInstance();
+        moneyRegister.printOrderReceipts(recieptsFileName);
+
+        /* InventoryFileName */
+        Inventory inventory = Inventory.getInstance();
+        inventory.printInventoryToFile(inventoryFileName);
+
+        /* Money register */
+        writeObjectToFileName(moneyRegisterFileName, moneyRegister);
+    }
+
+    public static void writeObjectToFileName(String filename, Object object){
+
+        try {
+            FileOutputStream fos = new FileOutputStream(filename);
+            ObjectOutputStream oos = new ObjectOutputStream(fos);
+            oos.writeObject(object);
+            oos.close();
+            fos.close();
+        }
+        catch (FileNotFoundException e){
+            System.out.println("File not found");
+        }
+        catch (IOException e ) {
+            e.printStackTrace();
+        }
+
     }
 }

@@ -5,6 +5,7 @@ import bgu.spl.mics.MicroService;
 import bgu.spl.mics.application.Messages.DeliveryEvent;
 import bgu.spl.mics.application.Messages.FindDriverEvent;
 import bgu.spl.mics.application.Messages.ReleaseVehicleEvent;
+import bgu.spl.mics.application.Messages.TerminateBroadcast;
 import bgu.spl.mics.application.passiveObjects.DeliveryVehicle;
 
 /**
@@ -22,14 +23,19 @@ public class LogisticsService extends MicroService {
 	}
 	@Override
 	protected void initialize() {
+		subscribeBroadcast(TerminateBroadcast.class, finallCall->{
+			this.terminate();
+		});
 		subscribeEvent(DeliveryEvent.class, incomingDelivery->{
 			System.out.println("Delivery event arrived into  "+this.getName());
 			Future <Future<DeliveryVehicle>> futuro = sendEvent(new FindDriverEvent());
 			DeliveryVehicle futuroVehicle = futuro.get().get();
-			System.out.println("GOING TO DELIVERY OF : "+this.getName());
-			System.out.println("Address of delivery : "+incomingDelivery.getAddress() + " Distance:    "+incomingDelivery.getDistance());
-			futuroVehicle.deliver(incomingDelivery.getAddress(), incomingDelivery.getDistance());
-			sendEvent(new ReleaseVehicleEvent(futuroVehicle));
+			if(futuroVehicle !=null) {
+				System.out.println("GOING TO DELIVERY OF : " + this.getName());
+				System.out.println("Address of delivery : " + incomingDelivery.getAddress() + " Distance:    " + incomingDelivery.getDistance());
+				futuroVehicle.deliver(incomingDelivery.getAddress(), incomingDelivery.getDistance());
+				sendEvent(new ReleaseVehicleEvent(futuroVehicle));
+			}
 		});
 	}
 

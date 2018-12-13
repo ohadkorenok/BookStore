@@ -1,6 +1,8 @@
 package bgu.spl.mics.application.passiveObjects;
 
 
+import bgu.spl.mics.application.BookStoreRunner;
+
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.ObjectOutputStream;
@@ -70,15 +72,6 @@ public class MoneyRegister implements Serializable {
      * This method is called by the main method in order to generate the output.. 
      */
 	public void printOrderReceipts(String filename) {
-		try{
-			FileOutputStream fos = new FileOutputStream(filename);
-			ObjectOutputStream oos = new ObjectOutputStream(fos);
-			oos.writeObject(recList);
-			oos.close();
-			fos.close();
-		}
-		catch (IOException e ){
-			System.out.println("error opening the file to write!");
-		}
+		BookStoreRunner.writeObjectToFileName(filename, recList);
 	}
 }

@@ -3,10 +3,7 @@ package bgu.spl.mics.application.services;
 
 import bgu.spl.mics.Future;
 import bgu.spl.mics.MicroService;
-import bgu.spl.mics.application.Messages.BookOrderEvent;
-import bgu.spl.mics.application.Messages.CheckBookInfo;
-import bgu.spl.mics.application.Messages.TakeBookEvent;
-import bgu.spl.mics.application.Messages.TickBroadcast;
+import bgu.spl.mics.application.Messages.*;
 import bgu.spl.mics.application.passiveObjects.*;
 
 /**
@@ -32,6 +29,9 @@ public class SellingService extends MicroService {
 
 	@Override
 	protected void initialize() {
+		subscribeBroadcast(TerminateBroadcast.class, finallCall->{
+			this.terminate();
+		});
 		subscribeBroadcast(TickBroadcast.class, tickIncoming->{
 			this.time=tickIncoming.getCurrentTick();
 		} );

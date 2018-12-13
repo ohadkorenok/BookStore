@@ -165,10 +165,8 @@ public abstract class MicroService implements Runnable {
     @Override
     public final void run() {
         // The microservice registers to the message bus.
+        System.out.println(this.getName() + "      =  "+Thread.currentThread().getName());
         magicBus.register(this);
-        subscribeBroadcast(TerminateBroadcast.class, finallCall->{
-            this.terminate();
-        });
         initialize();
         while (!terminated) {
             try{

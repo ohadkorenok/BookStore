@@ -3,6 +3,7 @@ package bgu.spl.mics.application.services;
 import bgu.spl.mics.MicroService;
 import bgu.spl.mics.application.Messages.CheckBookInfo;
 import bgu.spl.mics.application.Messages.TakeBookEvent;
+import bgu.spl.mics.application.Messages.TerminateBroadcast;
 import bgu.spl.mics.application.passiveObjects.Inventory;
 import bgu.spl.mics.application.passiveObjects.OrderResult;
 
@@ -28,6 +29,9 @@ public class InventoryService extends MicroService{
 
 	@Override
 	protected void initialize() {
+		subscribeBroadcast(TerminateBroadcast.class, finallCall->{
+			this.terminate();
+		});
 		subscribeEvent(CheckBookInfo.class, ev->{
 			System.out.println("CheckBookInfo event got into "+this.getName());
 			int price=inv.checkAvailabiltyAndGetPrice(ev.getName());

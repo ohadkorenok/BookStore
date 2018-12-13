@@ -105,8 +105,10 @@ public class MessageBusImpl implements MessageBus {
         if (roundRobinBlockingQueueOfEvents != null) {
             try {
                 roundRobinBlockingQueueOfEvents.getSema().acquire(1);
-                SpecificBlockingQueue<Message> currentQueue = roundRobinBlockingQueueOfEvents.getNext();
-                currentQueue.put(e);
+                if(roundRobinBlockingQueueOfEvents.size() > 0) {
+                    SpecificBlockingQueue<Message> currentQueue = roundRobinBlockingQueueOfEvents.getNext();
+                    currentQueue.put(e);
+                }
             } catch (InterruptedException ex) {
                 System.out.println("SendEvent Was interrupted! ");
             } finally {

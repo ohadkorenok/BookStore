@@ -1,4 +1,6 @@
 package bgu.spl.mics.application.passiveObjects;
+import bgu.spl.mics.application.BookStoreRunner;
+
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.concurrent.*;
@@ -97,16 +99,8 @@ public class Inventory implements java.io.Serializable{
 	//@PRE: inv != null
 	//@POST: data in file == inv.toString() + inv.elements(i).toString()
 	public void printInventoryToFile(String filename){
-	    try{
-	        FileOutputStream fos = new FileOutputStream(filename);
-	        ObjectOutputStream oos = new ObjectOutputStream(fos);
-	        oos.writeObject(bookCollection);
-	        oos.close();
-	        fos.close();
-        }
-	    catch (IOException e ){
-            System.out.println("error opening the file to write! ");
-        }
+
+		BookStoreRunner.writeObjectToFileName(filename, bookCollection);
 
 	}
 }
