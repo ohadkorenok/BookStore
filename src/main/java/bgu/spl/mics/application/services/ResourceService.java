@@ -1,6 +1,5 @@
 package bgu.spl.mics.application.services;
 
-import bgu.spl.mics.Event;
 import bgu.spl.mics.Future;
 import bgu.spl.mics.MicroService;
 import bgu.spl.mics.application.Messages.FindDriverEvent;
@@ -8,8 +7,6 @@ import bgu.spl.mics.application.Messages.ReleaseVehicleEvent;
 import bgu.spl.mics.application.Messages.TerminateBroadcast;
 import bgu.spl.mics.application.passiveObjects.ResourcesHolder;
 
-import java.util.List;
-import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentLinkedQueue;
 
 /**
@@ -26,6 +23,10 @@ public class ResourceService extends MicroService {
     private static int instanceCounter = 0;
     private static ConcurrentLinkedQueue<Future> futurePool = new ConcurrentLinkedQueue<>();
 
+    /**
+     * Constructor.
+     * @param name String
+     */
     public ResourceService(String name) {
         super(name);
         rH = ResourcesHolder.getInstance();
@@ -49,13 +50,11 @@ public class ResourceService extends MicroService {
             }
         });
         subscribeEvent(FindDriverEvent.class, event -> {
-            System.out.println("Find driver event got into " + this.getName());
             Future f1 = rH.acquireVehicle();
             futurePool.add(f1);
             complete(event, f1);
         });
         subscribeEvent(ReleaseVehicleEvent.class, event -> {
-            System.out.println("Release driver event got into " + this.getName());
             rH.releaseVehicle(event.getVehicle());
         });
     }

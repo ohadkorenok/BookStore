@@ -37,28 +37,22 @@ public class APIService extends MicroService {
 
     @Override
     protected void initialize() {
-        subscribeBroadcast(TerminateBroadcast.class, finallCall->{
+        subscribeBroadcast(TerminateBroadcast.class, finallCall -> {
             this.terminate();
         });
         subscribeBroadcast(TickBroadcast.class, tickIncoming -> {
             this.time = tickIncoming.getCurrentTick();
-            while (currentIndex <= orderSchedules.length - 1  && time == orderSchedules[currentIndex].getTick() ) {
+            while (currentIndex <= orderSchedules.length - 1 && time == orderSchedules[currentIndex].getTick()) {
                 Future<OrderReceipt> futuro = sendEvent(new BookOrderEvent(customer, time, orderSchedules[currentIndex].getBookTitle()));
                 OrderReceipt futuroReciept = futuro.get();
                 if (!(futuroReciept instanceof NullReciept)) {
                     sendEvent(new DeliveryEvent(customer.getAddress(), customer.getDistance()));
-                    customer.getCustomerReceiptList().add(futuro.get()); // add the issued tick.
+                    customer.getCustomerReceiptList().add(futuro.get());
                 }
                 currentIndex++;
             }
-    });
-}
-
-    public Customer getCustomer() {
-        return customer;
+        });
     }
 
-    public void setCustomer(Customer customer) {
-        this.customer = customer;
-    }
+
 }

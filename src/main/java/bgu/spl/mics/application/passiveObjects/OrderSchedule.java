@@ -1,5 +1,8 @@
 package bgu.spl.mics.application.passiveObjects;
 
+/**
+ * This class represents order schedule event. It is sorted by ticks.
+ */
 public class OrderSchedule implements Comparable{
 
     private String bookTitle;
@@ -16,10 +19,6 @@ public class OrderSchedule implements Comparable{
 
     public int getTick() {
         return tick;
-    }
-
-    public void setTick(int tick) {
-        this.tick = tick;
     }
 
     @Override

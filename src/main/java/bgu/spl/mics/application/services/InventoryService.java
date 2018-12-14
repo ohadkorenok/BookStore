@@ -33,12 +33,10 @@ public class InventoryService extends MicroService{
 			this.terminate();
 		});
 		subscribeEvent(CheckBookInfo.class, ev->{
-			System.out.println("CheckBookInfo event got into "+this.getName());
 			int price=inv.checkAvailabiltyAndGetPrice(ev.getName());
 		        complete(ev,price);
 		});
 		subscribeEvent(TakeBookEvent.class, ev->{
-			System.out.println("TakeBook event got into "+this.getName());
 			OrderResult answer=inv.take(ev.getName());
 		    if(answer==SUCCESSFULLY_TAKEN)
 		        complete(ev,true);

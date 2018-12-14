@@ -1,7 +1,5 @@
 package bgu.spl.mics;
 
-import bgu.spl.mics.application.Messages.TerminateBroadcast;
-import bgu.spl.mics.application.Messages.TickBroadcast;
 
 import java.util.HashMap;
 
@@ -103,7 +101,6 @@ public abstract class MicroService implements Runnable {
      * 	       			null in case no micro-service has subscribed to {@code e.getClass()}.
      */
     protected final <T> Future<T> sendEvent(Event<T> e) {
-        System.out.println(this.getName() +" is sending the event : "+e.toString());
         return magicBus.sendEvent(e);
     }
 
@@ -115,9 +112,6 @@ public abstract class MicroService implements Runnable {
      */
     protected final void sendBroadcast(Broadcast b)
     {
-        if(!(b instanceof TickBroadcast)) {
-            System.out.println(this.getName() + " is sending the event : " + b.toString());
-        }
         magicBus.sendBroadcast(b);
     }
 
@@ -132,7 +126,6 @@ public abstract class MicroService implements Runnable {
      *               {@code e}.
      */
     protected final <T> void complete(Event<T> e, T result) {
-        System.out.println("The event "+e.toString() +"    got the result : "+result.toString() + "      from the worker: "+this.getName());
         magicBus.complete(e, result);
     }
 
@@ -165,7 +158,6 @@ public abstract class MicroService implements Runnable {
     @Override
     public final void run() {
         // The microservice registers to the message bus.
-        System.out.println(this.getName() + "      =  "+Thread.currentThread().getName());
         magicBus.register(this);
         initialize();
         while (!terminated) {
@@ -180,7 +172,7 @@ public abstract class MicroService implements Runnable {
                 }
             }
             catch (InterruptedException e){
-                //TODO :: add stuff.
+                System.out.println("The thread was interrupted! ");
             }
         }
     }

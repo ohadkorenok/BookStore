@@ -81,7 +81,7 @@ public class MessageBusImplTest {
         try {
             magicBus.awaitMessage(ms3);
         } catch (InterruptedException e) {
-            System.out.println("stub");
+            System.out.println("Thread was interrupted");
         }
     }
 }

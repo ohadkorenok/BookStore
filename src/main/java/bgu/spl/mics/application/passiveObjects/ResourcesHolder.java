@@ -1,8 +1,6 @@
 package bgu.spl.mics.application.passiveObjects;
 
 import bgu.spl.mics.Future;
-import com.sun.xml.internal.bind.v2.runtime.unmarshaller.XsiNilLoader;
-
 import java.util.Arrays;
 import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.Semaphore;
@@ -62,6 +60,10 @@ public class ResourcesHolder {
 		locker.release();
 		assignWaitersToVehicle();
 	}
+
+	/**
+	 * This method assigns requests for vehicles after releasing one vehicle.
+	 */
 	private void assignWaitersToVehicle(){
 		synchronized (futuretoResolve){
 			if(!futuretoResolve.isEmpty()) {

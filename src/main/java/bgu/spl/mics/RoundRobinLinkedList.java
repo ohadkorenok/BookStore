@@ -2,6 +2,10 @@ package bgu.spl.mics;
 
 import java.util.LinkedList;
 
+/**
+ * This class implements rounded linked list, by RoundRobin style.
+ * @param <T>
+ */
 public class RoundRobinLinkedList <T>  extends LinkedList <T> {
     private int nextIndex = 0 ;
 

@@ -3,9 +3,6 @@ package bgu.spl.mics.application.passiveObjects;
 
 import bgu.spl.mics.application.BookStoreRunner;
 
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.io.ObjectOutputStream;
 import java.io.Serializable;
 import java.util.LinkedList;
 import java.util.List;

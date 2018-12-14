@@ -1,6 +1,5 @@
 package bgu.spl.mics;
 
-import bgu.spl.mics.application.Messages.TerminateBroadcast;
 import bgu.spl.mics.application.passiveObjects.RoundRobinLinkedListSemaphore;
 
 import java.util.LinkedList;
@@ -25,6 +24,11 @@ public class MessageBusImpl implements MessageBus {
         return SingleMessageBus.messageBus;
     }
 
+    /**
+     * This method puts into the microServiceInstance the desired messageClass that it is subscribed to .
+     * @param type Class of message
+     * @param m MicroService
+     */
     private void putIntoMsInstanceToMessageClassHashMap(Class <?extends Message>  type, MicroService m){
         if (!microServiceInstancetoMessageClass.containsKey(m)) {
             LinkedList<Class<? extends Message>> messageList = new LinkedList<>();
@@ -109,6 +113,8 @@ public class MessageBusImpl implements MessageBus {
                     SpecificBlockingQueue<Message> currentQueue = roundRobinBlockingQueueOfEvents.getNext();
                     currentQueue.put(e);
                 }
+                else
+                    future.resolve(null);
             } catch (InterruptedException ex) {
                 System.out.println("SendEvent Was interrupted! ");
             } finally {
@@ -136,13 +142,7 @@ public class MessageBusImpl implements MessageBus {
         if(Broadcast.class.isAssignableFrom(messageClass)) {
                 synchronized (broadcastToRoundRobinQueues.get(messageClass)) {
                     SpecificBlockingQueue<Message> queuetoPush = microServiceToQueue.get(m);
-                    if (!messageClass.toString().equals("class bgu.spl.mics.application.Messages.TickBroadcast")) {
-//                        System.out.println("Hi I am fetching and gonna push " + Thread.currentThread().getName());
-                    }
                     broadcastToRoundRobinQueues.get(messageClass).add(queuetoPush);
-                    if (!messageClass.toString().equals("class bgu.spl.mics.application.Messages.TickBroadcast")) {
-//                        System.out.println(broadcastToRoundRobinQueues.get(messageClass).toString());
-                    }
                 }
         }
         else {
@@ -164,7 +164,6 @@ public class MessageBusImpl implements MessageBus {
                 if (i instanceof Event) {
                     complete((Event) i, null);
                 }
-                System.out.println("Hi,removing this Message: "+i+" "+Thread.currentThread().getName());
             }
             microServiceToQueue.get(m).clear();
         }
@@ -175,8 +174,14 @@ public class MessageBusImpl implements MessageBus {
                 seekNdestroy(m,messageClass);
         }
         microServiceInstancetoMessageClass.remove(m);
-        System.out.println("Finished Unregister " +Thread.currentThread().getName());
     }
+
+    /**
+     * This method seeks for a specific instance of the queue that belongs to the microservice, and deletes it from the
+     * Compatible hashmap ( eventClassToRoundRobinQueues or broadcastToRoundRobinQueues )
+     * @param m MicroService
+     * @param messageClass Class <? extends Message>
+     */
     private void seekNdestroy(MicroService m,Class<? extends Message> messageClass){
         if(Event.class.isAssignableFrom(messageClass)){
             synchronized (eventClassToRoundRobinQueues.get(messageClass)){
@@ -196,18 +201,6 @@ public class MessageBusImpl implements MessageBus {
                     broadcastToRoundRobinQueues.get(messageClass).remove(toRemove);
             }
 
-        }
-    }
-
-
-
-    private void deleteSpecificQueue(RoundRobinLinkedListSemaphore<SpecificBlockingQueue<Message>> queueList,SpecificBlockingQueue<Message> queueToRemove){
-        try {
-            queueList.getSema().acquire(1);
-            queueList.remove(queueToRemove);
-        } catch (InterruptedException e) {
-        } finally {
-            queueList.getSema().release(1);
         }
     }
 
