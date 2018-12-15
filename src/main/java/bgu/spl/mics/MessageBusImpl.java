@@ -78,7 +78,7 @@ public class MessageBusImpl implements MessageBus {
     @Override
     public void sendBroadcast(Broadcast b) {
         if (broadcastToRoundRobinQueues.get(b.getClass()) != null) {
-            synchronized (broadcastToRoundRobinQueues.get(b.getClass())) {
+            synchronized (broadcastToRoundRobinQueues) {
                 RoundRobinLinkedListSemaphore<SpecificBlockingQueue<Message>> roundRobinBlockingQueueOfBroadcasts = broadcastToRoundRobinQueues.get(b.getClass());
                 if (roundRobinBlockingQueueOfBroadcasts != null) {
                     for (SpecificBlockingQueue<Message> it : roundRobinBlockingQueueOfBroadcasts) {
@@ -101,21 +101,27 @@ public class MessageBusImpl implements MessageBus {
     public <T> Future<T> sendEvent(Event<T> e) {
         Future<T> future = new Future<>();
         eventToFuture.put(e, future);
-        RoundRobinLinkedListSemaphore<SpecificBlockingQueue<Message>> roundRobinBlockingQueueOfEvents = eventClassToRoundRobinQueues.getOrDefault(e.getClass(), null);
+        synchronized (eventClassToRoundRobinQueues) {
+            RoundRobinLinkedListSemaphore<SpecificBlockingQueue<Message>> roundRobinBlockingQueueOfEvents = eventClassToRoundRobinQueues.getOrDefault(e.getClass(), null);
         if (roundRobinBlockingQueueOfEvents != null) {
-            try {
-                roundRobinBlockingQueueOfEvents.getSema().acquire(1);
-                if(roundRobinBlockingQueueOfEvents.size() > 0) {
-                    SpecificBlockingQueue<Message> currentQueue = roundRobinBlockingQueueOfEvents.getNext();
-                    currentQueue.put(e);
+                try {
+                    if (roundRobinBlockingQueueOfEvents.size() > 0) {
+                        System.out.println("We are in send event of : " + e.toString() + "    .  calling the next queue. ");
+                        SpecificBlockingQueue<Message> currentQueue = roundRobinBlockingQueueOfEvents.getNext();
+                        System.out.println("NEXT QUEUE IS : " + currentQueue.toString());
+                        currentQueue.put(e);
+                    } else {
+                        System.out.println("Queue is empty");
+                        future.resolve(null);
+                    }
+
+                } catch (InterruptedException ex) {
+                    System.out.println("Thread was interrupted");
                 }
-            } catch (InterruptedException ex) {
-                System.out.println("SendEvent Was interrupted! ");
-            } finally {
-                roundRobinBlockingQueueOfEvents.getSema().release(1);
             }
+        else {future.resolve(null);
+        return null;}
         }
-        else {return null;}
         return future;
     }
 
@@ -134,7 +140,7 @@ public class MessageBusImpl implements MessageBus {
      */
     private void fetchNPushQueue(MicroService m, Class<? extends Message> messageClass) {
         if(Broadcast.class.isAssignableFrom(messageClass)) {
-                synchronized (broadcastToRoundRobinQueues.get(messageClass)) {
+                synchronized (broadcastToRoundRobinQueues) {
                     SpecificBlockingQueue<Message> queuetoPush = microServiceToQueue.get(m);
                     if (!messageClass.toString().equals("class bgu.spl.mics.application.Messages.TickBroadcast")) {
 //                        System.out.println("Hi I am fetching and gonna push " + Thread.currentThread().getName());
@@ -146,7 +152,7 @@ public class MessageBusImpl implements MessageBus {
                 }
         }
         else {
-            synchronized (eventClassToRoundRobinQueues.get(messageClass)) {
+            synchronized (eventClassToRoundRobinQueues) {
                 SpecificBlockingQueue<Message> queuetoPush = microServiceToQueue.get(m);
                 eventClassToRoundRobinQueues.get(messageClass).add(queuetoPush);
             }
@@ -155,59 +161,66 @@ public class MessageBusImpl implements MessageBus {
 
     @Override
     public void unregister(MicroService m) {
+        System.out.println("Starting Unregister " +m.getName());
             //*******************//
             //clear data in queue.
 
-        synchronized (microServiceToQueue.get(m)) {
             SpecificBlockingQueue<Message> qtoRemove = microServiceToQueue.get(m);
-            for (Message i : qtoRemove) {
-                if (i instanceof Event) {
-                    complete((Event) i, null);
+            try {
+
+                //*******************//
+                //the list inside the for-loop is applied only to one-thread or MicroService, therefore it is not shared-resource.
+                for (Class<? extends Message> messageClass : microServiceInstancetoMessageClass.getOrDefault(m, new LinkedList<>())) {
+                    seekNdestroy(m,messageClass);
                 }
-                System.out.println("Hi,removing this Message: "+i+" "+Thread.currentThread().getName());
-            }
-            microServiceToQueue.get(m).clear();
-        }
+                microServiceInstancetoMessageClass.remove(m);
+
+                qtoRemove.getSemaphore().acquire();
+                for (Message i : qtoRemove) {
+                    if (i instanceof Event) {
+                        complete((Event) i, null);
+                    }
+                    System.out.println("Hi,removing this Message: " + i + " " + Thread.currentThread().getName());
+                }
+                microServiceToQueue.get(m).clear();
+
         microServiceToQueue.remove(m);
-            //*******************//
-        //the list inside the for-loop is applied only to one-thread or MicroService, therefore it is not shared-resource.
-        for (Class<? extends Message> messageClass : microServiceInstancetoMessageClass.getOrDefault(m, new LinkedList<Class<? extends Message>>())) {
-                seekNdestroy(m,messageClass);
-        }
-        microServiceInstancetoMessageClass.remove(m);
-        System.out.println("Finished Unregister " +Thread.currentThread().getName());
+
+            }
+            catch(InterruptedException e) {
+            }finally{qtoRemove.getSemaphore().release();}
+        System.out.println("Finished Unregister " +m.getName());
     }
     private void seekNdestroy(MicroService m,Class<? extends Message> messageClass){
         if(Event.class.isAssignableFrom(messageClass)){
-            synchronized (eventClassToRoundRobinQueues.get(messageClass)){
+            synchronized (eventClassToRoundRobinQueues){
                 SpecificBlockingQueue<Message> toRemove=null;
                 RoundRobinLinkedListSemaphore<SpecificBlockingQueue<Message>> queueList=eventClassToRoundRobinQueues.get(messageClass);
                 toRemove=searchnGet(m,queueList);
                 if(toRemove!=null)
+
+
+                    System.out.println("IM GOING TO REMOVE FROM THE LIST: "+messageClass.toString());
+                    eventClassToRoundRobinQueues.get(messageClass).printLinkedList(); //TODO :: DELETE
+
+
                     eventClassToRoundRobinQueues.get(messageClass).remove(toRemove);
             }
         }
         else if(Broadcast.class.isAssignableFrom(messageClass)){
-            synchronized (broadcastToRoundRobinQueues.get(messageClass)){
-                SpecificBlockingQueue<Message> toRemove=null;
-                RoundRobinLinkedListSemaphore<SpecificBlockingQueue<Message>> queueList=broadcastToRoundRobinQueues.get(messageClass);
-                toRemove=searchnGet(m,queueList);
-                if(toRemove!=null)
+            synchronized (broadcastToRoundRobinQueues) {
+                SpecificBlockingQueue<Message> toRemove = null;
+                RoundRobinLinkedListSemaphore<SpecificBlockingQueue<Message>> queueList = broadcastToRoundRobinQueues.get(messageClass);
+                toRemove = searchnGet(m, queueList);
+                if (toRemove != null) {
+
+                    System.out.println("IM GOING TO REMOVE FROM THE LIST: " + messageClass.toString());
+                    broadcastToRoundRobinQueues.get(messageClass).printLinkedList(); //TODO :: DELETE
+
                     broadcastToRoundRobinQueues.get(messageClass).remove(toRemove);
+                }
             }
 
-        }
-    }
-
-
-
-    private void deleteSpecificQueue(RoundRobinLinkedListSemaphore<SpecificBlockingQueue<Message>> queueList,SpecificBlockingQueue<Message> queueToRemove){
-        try {
-            queueList.getSema().acquire(1);
-            queueList.remove(queueToRemove);
-        } catch (InterruptedException e) {
-        } finally {
-            queueList.getSema().release(1);
         }
     }
 

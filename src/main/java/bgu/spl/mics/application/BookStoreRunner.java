@@ -9,9 +9,7 @@ import javafx.util.Pair;
 import java.io.*;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.LinkedList;
+import java.util.*;
 
 /**
  * This is the Main class of the application. You should parse the input file,
@@ -26,11 +24,11 @@ public class BookStoreRunner {
     public static void main(String[] args) {
         Gson gson = new Gson();
         try {
-//            Path path = Paths.get(args[0]);
-//            String absPath = path.toAbsolutePath().toString();
-//            FileReader fileReader = new FileReader(absPath);
-//            FileReader fileReader = new FileReader(args[0]);
-            BufferedReader fileReader = new BufferedReader(new FileReader(args[0]));
+            Path path = Paths.get(args[0]);
+            String absPath = path.toAbsolutePath().toString();
+            FileReader fileReader = new FileReader(absPath);
+////            FileReader fileReader = new FileReader(args[0]);
+//            BufferedReader fileReader = new BufferedReader(new FileReader(args[0]));
             HashMap settings = gson.fromJson(fileReader, HashMap.class);
             Inventory inventory = initializeInventoryAndLoadBooks((ArrayList) settings.getOrDefault("initialInventory", null));
             ResourcesHolder resourcesHolder = initializeResourceHolder((ArrayList) settings.getOrDefault("initialResources", null));
@@ -45,6 +43,35 @@ public class BookStoreRunner {
                 }
             }
             writeAllFiles(args[1], args[2], args[3], args[4]);
+
+//            int numOfTest = Integer.parseInt(args[0].replace(new File(args[0]).getParent(), "").replace("/", "").replace(".json", ""));
+//            String dir = new File(args[1]).getParent() + "/" + numOfTest + " - ";
+//            Customer[] customers1 = customersById.values().toArray(new Customer[0]);
+//            Arrays.sort(customers1, Comparator.comparing(Customer::getName));
+//            String str_custs = Arrays.toString(customers1);
+//            str_custs = str_custs.replaceAll(", ", "\n---------------------------\n").replace("[", "").replace("]", "");
+//            Print(str_custs, dir + "Customers");
+//
+//            HashMap books=Inventory.getInstance().getBookCollection();
+//
+//
+//            String str_books = Arrays.toString(books.keySet().toArray());
+//            str_books = str_books.replaceAll(", ", "\n---------------------------\n").replace("[", "").replace("]", "");
+//            Print(str_books, dir + "Books");
+//
+//            List<OrderReceipt> receipts_lst = MoneyRegister.getInstance().getOrderReceipts();
+//            receipts_lst.sort(Comparator.comparing(OrderReceipt::getOrderId));
+//            receipts_lst.sort(Comparator.comparing(OrderReceipt::getOrderTick));
+//            OrderReceipt[] receipts = receipts_lst.toArray(new OrderReceipt[0]);
+//            String str_receipts = Arrays.toString(receipts);
+//            str_receipts = str_receipts.replaceAll(", ", "\n---------------------------\n").replace("[", "").replace("]", "");
+//            Print(str_receipts, dir + "Receipts");
+//
+//            Print(MoneyRegister.getInstance().getTotalEarnings() + "", dir + "Total");
+//
+//
+//
+
 
         } catch (FileNotFoundException e) {
             System.out.println("file not found!");
@@ -143,7 +170,7 @@ public class BookStoreRunner {
         for (int i = 0; i < logisticsServiceWorkers; i++) {
 
 //        for (int i = 0; i < 1; i++) {
-            Runnable runnableLogistics = new LogisticsService("LogisticsSerivce " + i);
+            Runnable runnableLogistics = new LogisticsService("LogisticsService " + i);
             Threads.add(startTask(runnableLogistics));
         }
         /***********   Initialize ResourceService   ***********/
@@ -203,4 +230,64 @@ public class BookStoreRunner {
         }
 
     }
+
+    public static String customers2string(Customer[] customers) {
+        String str = "";
+        for (Customer customer : customers)
+            str += customer2string(customer) + "\n---------------------------\n";
+        return str;
+    }
+
+    public static String customer2string(Customer customer) {
+        String str = "id    : " + customer.getId() + "\n";
+        str += "name  : " + customer.getName() + "\n";
+        str += "addr  : " + customer.getAddress() + "\n";
+        str += "dist  : " + customer.getDistance() + "\n";
+        str += "card  : " + customer.getCreditNumber() + "\n";
+        str += "money : " + customer.getAvailableCreditAmount();
+        return str;
+    }
+
+    public static String books2string(BookInventoryInfo[] books) {
+        String str = "";
+        for (BookInventoryInfo book : books)
+            str += book2string(book) + "\n---------------------------\n";
+        return str;
+    }
+
+    public static String book2string(BookInventoryInfo book) {
+        String str = "";
+        str += "title  : " + book.getBookTitle() + "\n";
+        str += "amount : " + book.getAmountInInventory() + "\n";
+        str += "price  : " + book.getPrice();
+        return str;
+    }
+
+
+    public static String receipts2string(OrderReceipt[] receipts) {
+        String str = "";
+        for (OrderReceipt receipt : receipts)
+            str += receipt2string(receipt) + "\n---------------------------\n";
+        return str;
+    }
+    public static String receipt2string(OrderReceipt receipt) {
+        String str = "";
+        str += "customer   : " + receipt.getCustomerId() + "\n";
+        str += "order tick : " + receipt.getOrderTick() + "\n";
+        str += "id         : " + receipt.getOrderId() + "\n";
+        str += "price      : " + receipt.getPrice() + "\n";
+        str += "seller     : " + receipt.getSeller();
+        return str;
+    }
+
+    public static void Print(String str, String filename) {
+        try {
+            try (PrintStream out = new PrintStream(new FileOutputStream(filename))) {
+                out.print(str);
+            }
+        } catch (IOException e) {
+            System.out.println("Exception: " + e.getClass().getSimpleName());
+        }
+    }
+
 }

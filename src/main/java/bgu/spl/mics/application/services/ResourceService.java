@@ -11,6 +11,7 @@ import bgu.spl.mics.application.passiveObjects.ResourcesHolder;
 import java.util.List;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentLinkedQueue;
+import java.util.concurrent.atomic.AtomicInteger;
 
 /**
  * ResourceService is in charge of the store resources - the delivery vehicles.
@@ -23,35 +24,44 @@ import java.util.concurrent.ConcurrentLinkedQueue;
  */
 public class ResourceService extends MicroService {
     private ResourcesHolder rH;
-    private static int instanceCounter = 0;
+    private static AtomicInteger instanceCounter = new AtomicInteger(0);
     private static ConcurrentLinkedQueue<Future> futurePool = new ConcurrentLinkedQueue<>();
 
     public ResourceService(String name) {
         super(name);
         rH = ResourcesHolder.getInstance();
-        instanceCounter++;
+        instanceCounter.getAndIncrement();
     }
 
     @Override
     protected void initialize() {
         subscribeBroadcast(TerminateBroadcast.class, finallCall -> {
-            if (instanceCounter != 1) {
-                this.terminate();
-                instanceCounter--;
-            } else {
-                for (Future futuro :
-                        futurePool) {
-                    if (!futuro.isDone()) {
-                        futuro.resolve(null);
+            synchronized (instanceCounter) {
+                System.out.println("The resource service instance counter is : " + instanceCounter.get());
+                if (instanceCounter.get() != 1) {
+                    this.terminate();
+                    instanceCounter.getAndDecrement();
+                } else {
+                    System.out.println("Hi instanceCounter is 1");
+                    for (Future futuro :
+                            futurePool) {
+                        if (!futuro.isDone()) {
+                            System.out.println("Resoling to NULL" + futuro);
+                            futuro.resolve(null);
+                        }
                     }
+                    terminate();
                 }
-                terminate();
             }
         });
+
         subscribeEvent(FindDriverEvent.class, event -> {
             System.out.println("Find driver event got into " + this.getName());
             Future f1 = rH.acquireVehicle();
-            futurePool.add(f1);
+            if(!f1.isDone()) {
+                System.out.println(f1.toString()+" Added to waiting poll");
+                futurePool.add(f1);
+            }
             complete(event, f1);
         });
         subscribeEvent(ReleaseVehicleEvent.class, event -> {

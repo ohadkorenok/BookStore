@@ -39,11 +39,11 @@ public class SellingService extends MicroService {
 			System.out.println("Book Order Event arrived to "+this.getName());
 			int proccessTick=this.time;
 			Future<Integer> f1=sendEvent(new CheckBookInfo(event.getName()));
-			if(f1.get()>0) {
+			if(f1 != null && f1.get()!=null &&f1.get()>0) {
 				synchronized (event.getCustomer()) {
 						if (event.getCustomer().getAvailableCreditAmount() - f1.get() >= 0) {
 							Future<Boolean> f2 = sendEvent(new TakeBookEvent(event.getName()));
-							if (f2.get()) {
+							if (f2!=null && f2.get()!=null && f2.get()) {
 								accountant.chargeCreditCard(event.getCustomer(), f1.get());
 								OrderReceipt reciept = new OrderReceipt(getName(), event.getCustomer().getId(), event.getName(), f1.get(), event.getissuedTick(), proccessTick, time);
 								accountant.file(reciept);
