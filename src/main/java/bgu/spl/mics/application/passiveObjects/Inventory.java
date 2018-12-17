@@ -99,8 +99,12 @@ public class Inventory implements java.io.Serializable{
 	//@PRE: inv != null
 	//@POST: data in file == inv.toString() + inv.elements(i).toString()
 	public void printInventoryToFile(String filename){
-
-		BookStoreRunner.writeObjectToFileName(filename, bookCollection);
+		HashMap <String, Integer> bookCollectionToWrite  = new HashMap<>();
+		for (String book :
+				bookCollection.keySet()) {
+			bookCollectionToWrite.put(book, bookCollection.get(book).getAmountInInventory());
+		}
+		BookStoreRunner.writeObjectToFileName(filename, bookCollectionToWrite);
 
 	}
 }

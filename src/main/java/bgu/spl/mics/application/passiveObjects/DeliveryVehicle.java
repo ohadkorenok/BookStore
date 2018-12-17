@@ -1,7 +1,5 @@
 package bgu.spl.mics.application.passiveObjects;
 
-import java.util.concurrent.TimeUnit;
-
 /**
  * Passive data-object representing a delivery vehicle of the store.
  * You must not alter any of the given public methods of this class.
@@ -48,9 +46,7 @@ public class DeliveryVehicle {
     public void deliver(String address, int distance) {
 
         int numberOfTicksToReachDestination = distance * speed;
-        System.out.println("THE SPEED IS : "+speed);
         try {
-            System.out.println(numberOfTicksToReachDestination + "   milliseconds  (deliver)");
             Thread.sleep(numberOfTicksToReachDestination);
         } catch (InterruptedException e) {
             System.out.println("Delivery was interrupted!!!! ");

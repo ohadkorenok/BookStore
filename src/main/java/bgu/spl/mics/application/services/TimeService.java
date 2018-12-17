@@ -41,7 +41,6 @@ public class TimeService extends MicroService{
                 @Override
                 public void run() {
                     if(currentTick < duration) {
-                        System.out.println("Tick is : "+currentTick);
                         currentTick++;
                         TickBroadcast tick = new TickBroadcast (currentTick);
                         sendBroadcast(tick);
@@ -54,12 +53,3 @@ public class TimeService extends MicroService{
             }, 0, speed);
         }
 	}
-
-//        while(currentTick < duration) {
-//            timer.schedule(new TimerTask() {
-//                @Override
-//                public void run() {
-//                    currentTick++;
-//                }
-//            }, speed);
-//
